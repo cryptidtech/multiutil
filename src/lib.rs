@@ -24,7 +24,13 @@ pub trait TryDecodeFrom<'a>: Sized {
     fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error>;
 }
 
-use unsigned_varint::decode;
+/// This trait encodes a numeric value into a compact varuint Vec<u8>
+pub trait EncodeInto {
+    /// encode the type into a compact varuint Vec<u8>
+    fn encode_into(self) -> Vec<u8>;
+}
+
+use unsigned_varint::{decode, encode};
 
 /// Try to decode a varuint encoded u8
 impl<'a> TryDecodeFrom<'a> for u8 {
@@ -80,66 +86,154 @@ impl<'a> TryDecodeFrom<'a> for usize {
     }
 }
 
+/// Encode a u8 into a compact varuint Vec<u8>
+impl EncodeInto for u8 {
+    fn encode_into(self) -> Vec<u8> {
+        let mut buf = encode::u8_buffer();
+        encode::u8(self, &mut buf);
+        let mut v: Vec<u8> = Vec::new();
+        for b in buf {
+            v.push(b);
+            if decode::is_last(b) {
+                break;
+            }
+        }
+        v
+    }
+}
+
+/// Encode a u16 into a compact varuint Vec<u8>
+impl EncodeInto for u16 {
+    fn encode_into(self) -> Vec<u8> {
+        let mut buf = encode::u16_buffer();
+        encode::u16(self, &mut buf);
+        let mut v: Vec<u8> = Vec::new();
+        for b in buf {
+            v.push(b);
+            if decode::is_last(b) {
+                break;
+            }
+        }
+        v
+    }
+}
+
+/// Encode a u32 into a compact varuint Vec<u8>
+impl EncodeInto for u32 {
+    fn encode_into(self) -> Vec<u8> {
+        let mut buf = encode::u32_buffer();
+        encode::u32(self, &mut buf);
+        let mut v: Vec<u8> = Vec::new();
+        for b in buf {
+            v.push(b);
+            if decode::is_last(b) {
+                break;
+            }
+        }
+        v
+    }
+}
+
+/// Encode a u64 into a compact varuint Vec<u8>
+impl EncodeInto for u64 {
+    fn encode_into(self) -> Vec<u8> {
+        let mut buf = encode::u64_buffer();
+        encode::u64(self, &mut buf);
+        let mut v: Vec<u8> = Vec::new();
+        for b in buf {
+            v.push(b);
+            if decode::is_last(b) {
+                break;
+            }
+        }
+        v
+    }
+}
+
+/// Encode a u128 into a compact varuint Vec<u8>
+impl EncodeInto for u128 {
+    fn encode_into(self) -> Vec<u8> {
+        let mut buf = encode::u128_buffer();
+        encode::u128(self, &mut buf);
+        let mut v: Vec<u8> = Vec::new();
+        for b in buf {
+            v.push(b);
+            if decode::is_last(b) {
+                break;
+            }
+        }
+        v
+    }
+}
+
+/// Encode a usize into a compact varuint Vec<u8>
+impl EncodeInto for usize {
+    fn encode_into(self) -> Vec<u8> {
+        let mut buf = encode::usize_buffer();
+        encode::usize(self, &mut buf);
+        let mut v: Vec<u8> = Vec::new();
+        for b in buf {
+            v.push(b);
+            if decode::is_last(b) {
+                break;
+            }
+        }
+        v
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
-    use unsigned_varint::encode;
 
     #[test]
     fn test_u8() {
-        let mut buf = encode::u8_buffer();
-        let b = encode::u8(0xff_u8, &mut buf);
-        let (num, _) = u8::try_decode_from(b).unwrap();
+        let buf = 0xff_u8.encode_into();
+        let (num, _) = u8::try_decode_from(&buf).unwrap();
         assert_eq!(0xff_u8, num);
     }
 
     #[test]
     fn test_u16() {
-        let mut buf = encode::u16_buffer();
-        let b = encode::u16(0xffee_u16, &mut buf);
-        let (num, _) = u16::try_decode_from(b).unwrap();
+        let buf = 0xffee_u16.encode_into();
+        let (num, _) = u16::try_decode_from(&buf).unwrap();
         assert_eq!(0xffee_u16, num);
     }
 
     #[test]
     fn test_u32() {
-        let mut buf = encode::u32_buffer();
-        let b = encode::u32(0xffeeddcc_u32, &mut buf);
-        let (num, _) = u32::try_decode_from(b).unwrap();
+        let buf = 0xffeeddcc_u32.encode_into();
+        let (num, _) = u32::try_decode_from(&buf).unwrap();
         assert_eq!(0xffeeddcc_u32, num);
     }
 
     #[test]
     fn test_u64() {
-        let mut buf = encode::u64_buffer();
-        let b = encode::u64(0xffeeddcc_bbaa9988_u64, &mut buf);
-        let (num, _) = u64::try_decode_from(b).unwrap();
+        let buf = 0xffeeddcc_bbaa9988_u64.encode_into();
+        let (num, _) = u64::try_decode_from(&buf).unwrap();
         assert_eq!(0xffeeddcc_bbaa9988_u64, num);
     }
 
     #[test]
     fn test_u128() {
-        let mut buf = encode::u128_buffer();
-        let b = encode::u128(0xffeeddcc_bbaa9988_77665544_33221100_u128, &mut buf);
-        let (num, _) = u128::try_decode_from(b).unwrap();
+        let buf = 0xffeeddcc_bbaa9988_77665544_33221100_u128.encode_into();
+        let (num, _) = u128::try_decode_from(&buf).unwrap();
         assert_eq!(0xffeeddcc_bbaa9988_77665544_33221100_u128, num);
     }
 
     #[cfg(target_pointer_width = "64")]
     #[test]
     fn test_usize() {
-        let mut buf = encode::usize_buffer();
-        let b = encode::usize(0xffeeddcc_bbaa9988_usize, &mut buf);
-        let (num, _) = usize::try_decode_from(b).unwrap();
+        let buf = 0xffeeddcc_bbaa9988_usize.encode_into();
+        let (num, _) = usize::try_decode_from(&buf).unwrap();
         assert_eq!(0xffeeddcc_bbaa9988_usize, num);
     }
 
     #[cfg(target_pointer_width = "32")]
     #[test]
     fn test_usize() {
-        let mut buf = encode::usize_buffer();
-        let b = encode::usize(0xffeeddcc_usize, &mut buf);
-        let (num, _) = usize::try_decode_from(b).unwrap();
+        let buf = 0xffeeddcc_usize.encode_into();
+        let (num, _) = usize::try_decode_from(&buf).unwrap();
         assert_eq!(0xffeeddcc_usize, num);
     }
 }
