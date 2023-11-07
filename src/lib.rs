@@ -27,7 +27,7 @@ pub trait TryDecodeFrom<'a>: Sized {
 /// This trait encodes a numeric value into a compact varuint Vec<u8>
 pub trait EncodeInto {
     /// encode the type into a compact varuint Vec<u8>
-    fn encode_into(self) -> Vec<u8>;
+    fn encode_into(&self) -> Vec<u8>;
 }
 
 use unsigned_varint::{decode, encode};
@@ -88,9 +88,9 @@ impl<'a> TryDecodeFrom<'a> for usize {
 
 /// Encode a u8 into a compact varuint Vec<u8>
 impl EncodeInto for u8 {
-    fn encode_into(self) -> Vec<u8> {
+    fn encode_into(&self) -> Vec<u8> {
         let mut buf = encode::u8_buffer();
-        encode::u8(self, &mut buf);
+        encode::u8(*self, &mut buf);
         let mut v: Vec<u8> = Vec::new();
         for b in buf {
             v.push(b);
@@ -104,9 +104,9 @@ impl EncodeInto for u8 {
 
 /// Encode a u16 into a compact varuint Vec<u8>
 impl EncodeInto for u16 {
-    fn encode_into(self) -> Vec<u8> {
+    fn encode_into(&self) -> Vec<u8> {
         let mut buf = encode::u16_buffer();
-        encode::u16(self, &mut buf);
+        encode::u16(*self, &mut buf);
         let mut v: Vec<u8> = Vec::new();
         for b in buf {
             v.push(b);
@@ -120,9 +120,9 @@ impl EncodeInto for u16 {
 
 /// Encode a u32 into a compact varuint Vec<u8>
 impl EncodeInto for u32 {
-    fn encode_into(self) -> Vec<u8> {
+    fn encode_into(&self) -> Vec<u8> {
         let mut buf = encode::u32_buffer();
-        encode::u32(self, &mut buf);
+        encode::u32(*self, &mut buf);
         let mut v: Vec<u8> = Vec::new();
         for b in buf {
             v.push(b);
@@ -136,9 +136,9 @@ impl EncodeInto for u32 {
 
 /// Encode a u64 into a compact varuint Vec<u8>
 impl EncodeInto for u64 {
-    fn encode_into(self) -> Vec<u8> {
+    fn encode_into(&self) -> Vec<u8> {
         let mut buf = encode::u64_buffer();
-        encode::u64(self, &mut buf);
+        encode::u64(*self, &mut buf);
         let mut v: Vec<u8> = Vec::new();
         for b in buf {
             v.push(b);
@@ -152,9 +152,9 @@ impl EncodeInto for u64 {
 
 /// Encode a u128 into a compact varuint Vec<u8>
 impl EncodeInto for u128 {
-    fn encode_into(self) -> Vec<u8> {
+    fn encode_into(&self) -> Vec<u8> {
         let mut buf = encode::u128_buffer();
-        encode::u128(self, &mut buf);
+        encode::u128(*self, &mut buf);
         let mut v: Vec<u8> = Vec::new();
         for b in buf {
             v.push(b);
@@ -168,9 +168,9 @@ impl EncodeInto for u128 {
 
 /// Encode a usize into a compact varuint Vec<u8>
 impl EncodeInto for usize {
-    fn encode_into(self) -> Vec<u8> {
+    fn encode_into(&self) -> Vec<u8> {
         let mut buf = encode::usize_buffer();
-        encode::usize(self, &mut buf);
+        encode::usize(*self, &mut buf);
         let mut v: Vec<u8> = Vec::new();
         for b in buf {
             v.push(b);
