@@ -7,6 +7,8 @@
     unused_qualifications
 )]
 
+use multibase::Base;
+
 /// Errors generated from the implementations
 pub mod error;
 
@@ -182,9 +184,45 @@ impl EncodeInto for usize {
     }
 }
 
+/// convert a multibase Base to its string equivalent
+pub fn base_name(b: Base) -> String {
+    use Base::*;
+    match b {
+        Identity => "Raw Binary",
+        Base2 => "Base2",
+        Base8 => "Base8",
+        Base10 => "Base10",
+        Base16Lower => "Base16 Lower",
+        Base16Upper => "Base16 Upper",
+        Base32Lower => "Base32 Lower",
+        Base32Upper => "Base32 Upper",
+        Base32PadLower => "Base32 Lower w/Padding",
+        Base32PadUpper => "Base32 Upper w/Padding",
+        Base32HexLower => "Base32 Hex Lower",
+        Base32HexUpper => "Base32 Hex Upper",
+        Base32HexPadLower => "Base32 Hex Lower w/Padding",
+        Base32HexPadUpper => "Base32 Hex Upper w/Padding",
+        Base32Z => "Z-Base32",
+        Base36Lower => "Base36 Lower",
+        Base36Upper => "Base36 Upper",
+        Base58Flickr => "Base58 Flickr",
+        Base58Btc => "Base58 Bitcoin",
+        Base64 => "Base64",
+        Base64Pad => "Base64 w/Padding",
+        Base64Url => "Base64 URL Safe",
+        Base64UrlPad => "Base64 URL Safe w/Padding",
+    }
+    .to_string()
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_base_name() {
+        assert_eq!(base_name(Base::Base16Upper), "Base16 Upper".to_string());
+    }
 
     #[test]
     fn test_u8() {

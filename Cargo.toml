@@ -1,6 +1,6 @@
 [package]
 name = "multiutil"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["Dave Huseby <dwh@linuxprogrammer.org>"]
 description = "Multiformat traits and utility functions"
@@ -9,5 +9,6 @@ readme = "README.md"
 license = "Apache-2.0"
 
 [dependencies]
+multibase = "0.9"
 thiserror = "1.0"
 unsigned-varint = { version = "0.8", features = ["std"] }
