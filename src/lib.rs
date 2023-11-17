@@ -44,28 +44,32 @@ mod test {
     }
 
     #[derive(PartialEq)]
-    struct Unit(u8);
+    struct Unit([u8; 2]);
     impl Unit {
         pub fn value(&self) -> u8 {
-            self.0
+            self.0[0]
         }
     }
     impl Default for Unit {
         fn default() -> Self {
-            Self(0x42)
+            Self([0x42, 0xAA])
+        }
+    }
+    impl AsRef<[u8]> for Unit {
+        fn as_ref(&self) -> &[u8] {
+            &self.0[..]
         }
     }
     impl EncodeInto for Unit {
         fn encode_into(&self) -> Vec<u8> {
-            vec![self.0]
+            self.0.to_vec()
         }
     }
     impl<'a> TryDecodeFrom<'a> for Unit {
         type Error = Error;
 
         fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
-            let (b, ptr) = u8::try_decode_from(bytes)?;
-            Ok((Self(b), ptr))
+            Ok((Self(bytes[..2].try_into().unwrap()), &bytes[2..]))
         }
     }
 
@@ -83,31 +87,52 @@ mod test {
     #[test]
     fn test_display() {
         let betu = BaseTagged::default();
-        assert_eq!("f3142".to_string(), betu.to_string());
+        assert_eq!("f3142aa".to_string(), betu.to_string());
     }
 
     #[test]
     fn test_try_from_str() {
-        let betu = BaseTagged::try_from("f3142").unwrap();
+        let betu = BaseTagged::try_from("f3142aa").unwrap();
         assert_eq!(BaseTagged::default(), betu);
     }
 
     #[test]
     fn test_to_slice() {
         let betu = BaseTagged::default();
-        assert_eq!(betu.encode_into(), vec![0x31, 0x42]);
+        assert_eq!(betu.encode_into(), vec![0x31, 0x42, 0xaa]);
     }
 
     #[test]
     fn test_from_slice() {
-        let bytes = vec![0x31, 0x42];
+        let bytes = vec![0x31, 0x42, 0xaa];
         let (betu, _) = BaseTagged::try_decode_from(bytes.as_slice()).unwrap();
         assert_eq!(BaseTagged::default(), betu);
     }
 
     #[test]
+    fn test_binary_round_trip() {
+        let betu1 = BaseTagged::default();
+        let v = betu1.encode_into();
+        let (betu2, _) = BaseTagged::try_decode_from(&v).unwrap();
+        assert_eq!(betu1, betu2);
+    }
+
+    #[test]
+    fn test_string_round_trip() {
+        let betu1 = BaseTagged::default();
+        let s = betu1.to_string();
+        let betu2 = BaseTagged::try_from(s.as_str()).unwrap();
+        assert_eq!(betu1, betu2);
+    }
+    #[test]
     fn test_smart_pointer() {
         let betu = BaseTagged::default();
         assert_eq!(betu.value(), 0x42);
+    }
+
+    #[test]
+    fn test_as_ref() {
+        let betu = BaseTagged::default();
+        assert_eq!(&[0x42, 0xAA], betu.as_ref());
     }
 }

@@ -68,15 +68,6 @@ where
     }
 }
 
-impl<T> AsRef<T> for Tagged<T>
-where
-    T: EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
-{
-    fn as_ref(&self) -> &T {
-        &self.t
-    }
-}
-
 impl<T> ops::Deref for Tagged<T>
 where
     T: EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,

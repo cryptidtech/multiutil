@@ -1,4 +1,5 @@
 use crate::prelude::{BaseEncoded, EncodeInto, Tagged, TryDecodeFrom};
+use core::ops::Deref;
 use serde::ser::{self, SerializeTuple};
 
 /// Serialize instance of [`crate::prelude::Tagged`] into varuint encoded bytes
@@ -12,7 +13,7 @@ where
     {
         let mut t = serializer.serialize_tuple(2)?;
         t.serialize_element(&self.codec)?;
-        t.serialize_element(self.as_ref())?;
+        t.serialize_element(self.deref())?;
         t.end()
     }
 }
