@@ -4,7 +4,15 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// an unsigned-varint error
+    /// Multibase decode error
     #[error(transparent)]
-    UnsignedVarintDecode(#[from] unsigned_varint::decode::Error),
+    Multibase(#[from] multibase::Error),
+
+    /// Multitrait decode error
+    #[error(transparent)]
+    Multtrait(#[from] multitrait::Error),
+
+    /// Multicodec decode error
+    #[error(transparent)]
+    Multcodec(#[from] multicodec::Error),
 }
