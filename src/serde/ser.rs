@@ -5,7 +5,12 @@ use serde::ser::{self, SerializeTuple};
 /// Serialize instance of [`crate::prelude::Tagged`] into varuint encoded bytes
 impl<T> ser::Serialize for Tagged<T>
 where
-    T: ser::Serialize + CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: ser::Serialize
+        + CodecInfo
+        + DefaultEncoding
+        + EncodeInto
+        + for<'a> TryDecodeFrom<'a>
+        + ?Sized,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -21,7 +26,12 @@ where
 /// Serialize instance of [`crate::prelude::BaseEncoded`] into a string
 impl<T> ser::Serialize for BaseEncoded<T>
 where
-    T: ser::Serialize + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: ser::Serialize
+        + CodecInfo
+        + DefaultEncoding
+        + EncodeInto
+        + for<'a> TryDecodeFrom<'a>
+        + ?Sized,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

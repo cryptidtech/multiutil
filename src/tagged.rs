@@ -5,15 +5,24 @@ use core::{fmt, ops};
 #[derive(PartialEq)]
 pub struct Tagged<T>(T)
 where
-    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized;
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized;
 
 impl<T> Tagged<T>
 where
-    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     /// Construct a Tagged smart pointer with the given multicodec codec
     pub fn new(t: T) -> Self {
         Self(t)
+    }
+}
+
+impl<T> CodecInfo for Tagged<T>
+where
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+{
+    fn codec() -> Codec {
+        T::codec()
     }
 }
 
@@ -28,7 +37,7 @@ where
 
 impl<T> EncodeInto for Tagged<T>
 where
-    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     fn encode_into(&self) -> Vec<u8> {
         let mut v = T::codec().encode_into();
@@ -39,7 +48,7 @@ where
 
 impl<T> TryFrom<&[u8]> for Tagged<T>
 where
-    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
     for<'a> Error: From<<T as TryDecodeFrom<'a>>::Error>,
 {
     type Error = Error;
@@ -52,7 +61,7 @@ where
 
 impl<'a, T> TryDecodeFrom<'a> for Tagged<T>
 where
-    T: CodecInfo + EncodeInto + for<'b> TryDecodeFrom<'b>,
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'b> TryDecodeFrom<'b>,
     for<'b> Error: From<<T as TryDecodeFrom<'b>>::Error>,
 {
     type Error = Error;
@@ -72,7 +81,7 @@ where
 
 impl<T> ops::Deref for Tagged<T>
 where
-    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
     type Target = T;
 
@@ -84,7 +93,7 @@ where
 
 impl<T> fmt::Debug for Tagged<T>
 where
-    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} (0x{:x})", T::codec().as_str(), T::codec().code())

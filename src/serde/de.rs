@@ -7,7 +7,12 @@ use serde::de;
 /// Deserialize instance of [`crate::prelude::Tagged`] from a byte slice
 impl<'de, T> de::Deserialize<'de> for Tagged<T>
 where
-    T: de::Deserialize<'de> + CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: de::Deserialize<'de>
+        + CodecInfo
+        + DefaultEncoding
+        + EncodeInto
+        + for<'a> TryDecodeFrom<'a>
+        + ?Sized,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -17,7 +22,12 @@ where
 
         impl<'de, T> de::Visitor<'de> for TaggedVisitor<T>
         where
-            T: de::Deserialize<'de> + CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+            T: de::Deserialize<'de>
+                + CodecInfo
+                + DefaultEncoding
+                + EncodeInto
+                + for<'a> TryDecodeFrom<'a>
+                + ?Sized,
         {
             type Value = Tagged<T>;
 
@@ -54,7 +64,12 @@ where
 /// Deserialize instance of [`crate::prelude::BaseEncoded`] from a byte slice
 impl<'de, T> de::Deserialize<'de> for BaseEncoded<T>
 where
-    T: de::Deserialize<'de> + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: de::Deserialize<'de>
+        + CodecInfo
+        + DefaultEncoding
+        + EncodeInto
+        + for<'a> TryDecodeFrom<'a>
+        + ?Sized,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -65,6 +80,7 @@ where
         impl<'de, T> de::Visitor<'de> for BaseEncodedVisitor<T>
         where
             T: de::Deserialize<'de>
+                + CodecInfo
                 + DefaultEncoding
                 + EncodeInto
                 + for<'a> TryDecodeFrom<'a>
