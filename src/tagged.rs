@@ -1,40 +1,45 @@
-use crate::prelude::{Codec, EncodeInto, Error, TryDecodeFrom};
+use crate::prelude::{Base, Codec, CodecInfo, DefaultEncoding, EncodeInto, Error, TryDecodeFrom};
 use core::{fmt, ops};
 
 /// Smart pointer for multicodec tagged data
-pub struct Tagged<T>
+#[derive(PartialEq)]
+pub struct Tagged<T>(T)
 where
-    T: EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
-{
-    /// Multicoded codec
-    pub codec: Codec,
-    t: T,
-}
+    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized;
 
 impl<T> Tagged<T>
 where
-    T: EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     /// Construct a Tagged smart pointer with the given multicodec codec
-    pub fn new(codec: Codec, t: T) -> Self {
-        Self { codec, t }
+    pub fn new(t: T) -> Self {
+        Self(t)
+    }
+}
+
+impl<T> DefaultEncoding for Tagged<T>
+where
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+{
+    fn encoding() -> Base {
+        T::encoding()
     }
 }
 
 impl<T> EncodeInto for Tagged<T>
 where
-    T: EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     fn encode_into(&self) -> Vec<u8> {
-        let mut v = self.codec.encode_into();
-        v.append(&mut self.t.encode_into());
+        let mut v = T::codec().encode_into();
+        v.append(&mut self.0.encode_into());
         v
     }
 }
 
 impl<T> TryFrom<&[u8]> for Tagged<T>
 where
-    T: EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
     for<'a> Error: From<<T as TryDecodeFrom<'a>>::Error>,
 {
     type Error = Error;
@@ -47,44 +52,41 @@ where
 
 impl<'a, T> TryDecodeFrom<'a> for Tagged<T>
 where
-    T: EncodeInto + for<'b> TryDecodeFrom<'b>,
+    T: CodecInfo + EncodeInto + for<'b> TryDecodeFrom<'b>,
     for<'b> Error: From<<T as TryDecodeFrom<'b>>::Error>,
 {
     type Error = Error;
 
     fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
         let (codec, ptr) = Codec::try_decode_from(bytes)?;
+        if codec != T::codec() {
+            return Err(Error::IncorrectSigil {
+                expected: T::codec(),
+                received: codec,
+            });
+        }
         let (t, ptr) = T::try_decode_from(ptr)?;
-        Ok((Self { codec, t }, ptr))
-    }
-}
-
-impl<T> PartialEq for Tagged<T>
-where
-    T: EncodeInto + PartialEq<T> + for<'a> TryDecodeFrom<'a> + ?Sized,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.codec == other.codec && self.t == other.t
+        Ok((Self(t), ptr))
     }
 }
 
 impl<T> ops::Deref for Tagged<T>
 where
-    T: EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
     type Target = T;
 
     #[inline(always)]
     fn deref(&self) -> &T {
-        &self.t
+        &self.0
     }
 }
 
 impl<T> fmt::Debug for Tagged<T>
 where
-    T: EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} (0x{:x})", self.codec.as_str(), self.codec.code())
+        write!(f, "{} (0x{:x})", T::codec().as_str(), T::codec().code())
     }
 }

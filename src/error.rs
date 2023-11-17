@@ -15,4 +15,13 @@ pub enum Error {
     /// Multicodec decode error
     #[error(transparent)]
     Multcodec(#[from] multicodec::Error),
+
+    /// Incorrect multicoded sigil
+    #[error("Expected {expected:?} sigil but received {received:?} sigil")]
+    IncorrectSigil {
+        /// The expected codec
+        expected: multicodec::prelude::Codec,
+        /// The codec deserialized
+        received: multicodec::prelude::Codec,
+    },
 }

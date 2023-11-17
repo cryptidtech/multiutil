@@ -13,6 +13,12 @@ pub mod base_encoded;
 /// base_name function
 pub mod base_name;
 
+/// CodecInfo trait
+pub mod codec_info;
+
+/// DefaultEncoding trait
+pub mod default_encoding;
+
 /// Errors generated from the implementations
 pub mod error;
 pub use error::Error;
@@ -26,7 +32,9 @@ pub mod tagged;
 
 /// one-stop shop for all exported symbols
 pub mod prelude {
-    pub use super::{base_encoded::*, base_name::*, error::*, tagged::*};
+    pub use super::{
+        base_encoded::*, base_name::*, codec_info::*, default_encoding::*, error::*, tagged::*,
+    };
 
     /// re-exports
     pub use multibase::Base;
@@ -72,15 +80,22 @@ mod test {
             Ok((Self(bytes[..2].try_into().unwrap()), &bytes[2..]))
         }
     }
+    impl CodecInfo for Unit {
+        fn codec() -> Codec {
+            Codec::Multihash
+        }
+    }
+    impl DefaultEncoding for Unit {
+        fn encoding() -> Base {
+            Base::Base16Lower
+        }
+    }
 
     type BaseTagged = BaseEncoded<Tagged<Unit>>;
 
     impl Default for BaseTagged {
         fn default() -> Self {
-            BaseEncoded::new(
-                Base::Base16Lower,
-                Tagged::new(Codec::Multihash, Unit::default()),
-            )
+            BaseEncoded::new(Tagged::new(Unit::default()))
         }
     }
 
