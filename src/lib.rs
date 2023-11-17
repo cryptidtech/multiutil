@@ -45,6 +45,11 @@ mod test {
 
     #[derive(PartialEq)]
     struct Unit(u8);
+    impl Unit {
+        pub fn value(&self) -> u8 {
+            self.0
+        }
+    }
     impl Default for Unit {
         fn default() -> Self {
             Self(0x42)
@@ -85,5 +90,24 @@ mod test {
     fn test_try_from_str() {
         let betu = BaseTagged::try_from("f3142").unwrap();
         assert_eq!(BaseTagged::default(), betu);
+    }
+
+    #[test]
+    fn test_to_slice() {
+        let betu = BaseTagged::default();
+        assert_eq!(betu.encode_into(), vec![0x31, 0x42]);
+    }
+
+    #[test]
+    fn test_from_slice() {
+        let bytes = vec![0x31, 0x42];
+        let (betu, _) = BaseTagged::try_decode_from(bytes.as_slice()).unwrap();
+        assert_eq!(BaseTagged::default(), betu);
+    }
+
+    #[test]
+    fn test_smart_pointer() {
+        let betu = BaseTagged::default();
+        assert_eq!(betu.value(), 0x42);
     }
 }
