@@ -1,5 +1,5 @@
 use crate::prelude::{
-    base_name, Base, BaseEncodedError, CodecInfo, DefaultEncoding, EncodeInto, TryDecodeFrom,
+    base_name, Base, BaseEncodedError, CodecInfo, EncodeInto, EncodingInfo, TryDecodeFrom,
 };
 use core::{fmt, ops};
 
@@ -8,7 +8,7 @@ use core::{fmt, ops};
 ///
 pub struct BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + ?Sized,
+    T: CodecInfo + EncodingInfo + ?Sized,
 {
     /// The multibase encoding codec
     pub base: Base,
@@ -17,13 +17,13 @@ where
 
 impl<T> BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding,
+    T: CodecInfo + EncodingInfo,
 {
     /// Construct a new BaseEncoded instance using the default base encoding
     /// from the inner type
     pub fn new(t: T) -> Self {
         Self {
-            base: T::encoding(),
+            base: T::preferred_encoding(),
             t,
         }
     }
@@ -41,7 +41,7 @@ where
 
 impl<T> TryFrom<&str> for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + for<'a> TryFrom<&'a [u8]>,
+    T: CodecInfo + EncodingInfo + for<'a> TryFrom<&'a [u8]>,
 {
     type Error = BaseEncodedError;
 
@@ -58,7 +58,7 @@ where
 
 impl<'a, T> TryDecodeFrom<'a> for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'b> TryDecodeFrom<'b>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'b> TryDecodeFrom<'b>,
 {
     type Error = BaseEncodedError;
 
@@ -66,7 +66,7 @@ where
         let (t, ptr) = T::try_decode_from(bytes).map_err(|_| BaseEncodedError::ValueFailed)?;
         Ok((
             Self {
-                base: T::encoding(),
+                base: T::preferred_encoding(),
                 t,
             },
             ptr,
@@ -76,7 +76,7 @@ where
 
 impl<T> PartialEq for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + PartialEq<T> + ?Sized,
+    T: CodecInfo + EncodingInfo + PartialEq<T> + ?Sized,
 {
     fn eq(&self, other: &Self) -> bool {
         self.base == other.base && self.t == other.t
@@ -85,7 +85,7 @@ where
 
 impl<T> ops::Deref for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding,
+    T: CodecInfo + EncodingInfo,
 {
     type Target = T;
 
@@ -97,7 +97,7 @@ where
 
 impl<T> fmt::Display for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto,
+    T: CodecInfo + EncodingInfo + EncodeInto,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", multibase::encode(self.base, &self.t.encode_into()))
@@ -106,7 +106,7 @@ where
 
 impl<T> fmt::Debug for BaseEncoded<T>
 where
-    T: fmt::Debug + CodecInfo + DefaultEncoding + EncodeInto,
+    T: fmt::Debug + CodecInfo + EncodingInfo + EncodeInto,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(

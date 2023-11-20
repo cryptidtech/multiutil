@@ -16,8 +16,8 @@ pub mod base_name;
 /// CodecInfo trait
 pub mod codec_info;
 
-/// DefaultEncoding trait
-pub mod default_encoding;
+/// EncodingInfo trait
+pub mod encoding_info;
 
 /// Errors generated from the implementations
 pub mod error;
@@ -33,7 +33,7 @@ pub mod tagged;
 /// one-stop shop for all exported symbols
 pub mod prelude {
     pub use super::{
-        base_encoded::*, base_name::*, codec_info::*, default_encoding::*, error::*, tagged::*,
+        base_encoded::*, base_name::*, codec_info::*, encoding_info::*, error::*, tagged::*,
     };
 
     /// re-exports
@@ -81,12 +81,20 @@ mod test {
         }
     }
     impl CodecInfo for Unit {
-        fn codec() -> Codec {
+        fn preferred_codec() -> Codec {
+            Codec::Multihash
+        }
+
+        fn codec(&self) -> Codec {
             Codec::Multihash
         }
     }
-    impl DefaultEncoding for Unit {
-        fn encoding() -> Base {
+    impl EncodingInfo for Unit {
+        fn preferred_encoding() -> Base {
+            Base::Base16Lower
+        }
+
+        fn encoding(&self) -> Base {
             Base::Base16Lower
         }
     }

@@ -1,5 +1,5 @@
 use crate::prelude::{
-    Base, Codec, CodecInfo, DefaultEncoding, EncodeInto, TaggedError, TryDecodeFrom,
+    Base, Codec, CodecInfo, EncodeInto, EncodingInfo, TaggedError, TryDecodeFrom,
 };
 use core::{fmt, ops};
 
@@ -7,11 +7,11 @@ use core::{fmt, ops};
 #[derive(PartialEq)]
 pub struct Tagged<T>(T)
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized;
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized;
 
 impl<T> Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     /// Construct a Tagged smart pointer with the given multicodec codec
     pub fn new(t: T) -> Self {
@@ -21,25 +21,33 @@ where
 
 impl<T> CodecInfo for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
-    fn codec() -> Codec {
-        T::codec()
+    fn preferred_codec() -> Codec {
+        T::preferred_codec()
+    }
+
+    fn codec(&self) -> Codec {
+        self.0.codec()
     }
 }
 
-impl<T> DefaultEncoding for Tagged<T>
+impl<T> EncodingInfo for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
-    fn encoding() -> Base {
-        T::encoding()
+    fn preferred_encoding() -> Base {
+        T::preferred_encoding()
+    }
+
+    fn encoding(&self) -> Base {
+        self.0.encoding()
     }
 }
 
 impl<T> Into<Vec<u8>> for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     fn into(self) -> Vec<u8> {
         self.encode_into()
@@ -48,10 +56,10 @@ where
 
 impl<T> EncodeInto for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     fn encode_into(&self) -> Vec<u8> {
-        let mut v = T::codec().encode_into();
+        let mut v = self.codec().encode_into();
         v.append(&mut self.0.encode_into());
         v
     }
@@ -59,7 +67,7 @@ where
 
 impl<T> TryFrom<&[u8]> for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     type Error = TaggedError;
 
@@ -71,15 +79,15 @@ where
 
 impl<'a, T> TryDecodeFrom<'a> for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'b> TryDecodeFrom<'b>,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'b> TryDecodeFrom<'b>,
 {
     type Error = TaggedError;
 
     fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
         let (codec, ptr) = Codec::try_decode_from(bytes).map_err(|_| TaggedError::SigilFailed)?;
-        if codec != T::codec() {
+        if codec != T::preferred_codec() {
             return Err(TaggedError::IncorrectSigil {
-                expected: T::codec(),
+                expected: T::preferred_codec(),
                 received: codec,
             });
         }
@@ -90,7 +98,7 @@ where
 
 impl<T> ops::Deref for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
     type Target = T;
 
@@ -102,14 +110,14 @@ where
 
 impl<T> fmt::Debug for Tagged<T>
 where
-    T: fmt::Debug + CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: fmt::Debug + CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "{} (0x{:x}) - {:?}",
-            T::codec().as_str(),
-            T::codec().code(),
+            self.0.codec().as_str(),
+            self.0.codec().code(),
             self.0
         )
     }
