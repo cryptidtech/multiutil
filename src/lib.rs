@@ -51,7 +51,7 @@ mod test {
         assert_eq!(base_name(Base::Base16Upper), "Base16Upper".to_string());
     }
 
-    #[derive(PartialEq)]
+    #[derive(Debug, PartialEq)]
     struct Unit([u8; 2]);
     impl Unit {
         pub fn value(&self) -> u8 {

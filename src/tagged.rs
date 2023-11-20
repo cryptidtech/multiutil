@@ -102,9 +102,15 @@ where
 
 impl<T> fmt::Debug for Tagged<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: fmt::Debug + CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} (0x{:x})", T::codec().as_str(), T::codec().code())
+        write!(
+            f,
+            "{} (0x{:x}) - {:?}",
+            T::codec().as_str(),
+            T::codec().code(),
+            self.0
+        )
     }
 }
