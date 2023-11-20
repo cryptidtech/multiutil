@@ -1,6 +1,4 @@
-use crate::prelude::{
-    base_name, Base, CodecInfo, DefaultEncoding, EncodeInto, Error, TryDecodeFrom,
-};
+use crate::prelude::{base_name, Base, BaseEncodedError, CodecInfo, DefaultEncoding, EncodeInto};
 use core::{fmt, ops};
 
 /// Smart pointer for multibase encoded data. This supports encoding to and
@@ -8,7 +6,7 @@ use core::{fmt, ops};
 ///
 pub struct BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + DefaultEncoding + ?Sized,
 {
     /// The multibase encoding codec
     pub base: Base,
@@ -17,7 +15,7 @@ where
 
 impl<T> BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + DefaultEncoding,
 {
     /// Construct a new BaseEncoded instance using the default base encoding
     /// from the inner type
@@ -34,71 +32,26 @@ where
     }
 }
 
-// transparently encode the inner value as a slice
-impl<T> EncodeInto for BaseEncoded<T>
-where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
-{
-    fn encode_into(&self) -> Vec<u8> {
-        self.t.encode_into()
-    }
-}
-
-// transparently decode the inner value from a slice
-impl<T> TryFrom<&[u8]> for BaseEncoded<T>
-where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
-    for<'a> Error: From<<T as TryDecodeFrom<'a>>::Error>,
-{
-    type Error = Error;
-
-    fn try_from(v: &[u8]) -> Result<Self, Self::Error> {
-        let (s, _) = Self::try_decode_from(v)?;
-        Ok(s)
-    }
-}
-
-// transparently decode the inner value from a slice
-impl<'a, T> TryDecodeFrom<'a> for BaseEncoded<T>
-where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'b> TryDecodeFrom<'b>,
-    for<'b> Error: From<<T as TryDecodeFrom<'b>>::Error>,
-{
-    type Error = Error;
-
-    fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
-        let (t, ptr) = T::try_decode_from(bytes)?;
-        Ok((
-            Self {
-                base: T::encoding(),
-                t,
-            },
-            ptr,
-        ))
-    }
-}
-
 impl<T> TryFrom<&str> for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
-    for<'a> Error: From<<T as TryDecodeFrom<'a>>::Error>,
+    T: CodecInfo + DefaultEncoding + for<'a> TryFrom<&'a [u8]>,
 {
-    type Error = Error;
+    type Error = BaseEncodedError;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match multibase::decode(s) {
-            Ok((base, v)) => {
-                let (t, _) = T::try_decode_from(v.as_slice())?;
-                Ok(Self { base, t })
-            }
-            Err(e) => Err(Error::Multibase(e)),
+            Ok((base, v)) => Ok(Self {
+                base,
+                t: T::try_from(v.as_slice()).map_err(|_| BaseEncodedError::ValueFailed)?,
+            }),
+            Err(e) => Err(BaseEncodedError::Multibase(e)),
         }
     }
 }
 
 impl<T> PartialEq for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + PartialEq<T> + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + DefaultEncoding + PartialEq<T> + ?Sized,
 {
     fn eq(&self, other: &Self) -> bool {
         self.base == other.base && self.t == other.t
@@ -107,7 +60,7 @@ where
 
 impl<T> ops::Deref for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + DefaultEncoding,
 {
     type Target = T;
 
@@ -119,16 +72,16 @@ where
 
 impl<T> fmt::Display for BaseEncoded<T>
 where
-    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: CodecInfo + DefaultEncoding + EncodeInto,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", multibase::encode(self.base, &self.encode_into()))
+        write!(f, "{}", multibase::encode(self.base, &self.t.encode_into()))
     }
 }
 
 impl<T> fmt::Debug for BaseEncoded<T>
 where
-    T: fmt::Debug + CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+    T: fmt::Debug + CodecInfo + DefaultEncoding + EncodeInto,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -137,7 +90,7 @@ where
             base_name(self.base),
             self.base.code(),
             self.t,
-            multibase::encode(self.base, &self.encode_into())
+            multibase::encode(self.base, &self.t.encode_into())
         )
     }
 }

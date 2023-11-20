@@ -1,4 +1,6 @@
-use crate::prelude::{Base, Codec, CodecInfo, DefaultEncoding, EncodeInto, Error, TryDecodeFrom};
+use crate::prelude::{
+    Base, Codec, CodecInfo, DefaultEncoding, EncodeInto, TaggedError, TryDecodeFrom,
+};
 use core::{fmt, ops};
 
 /// Smart pointer for multicodec tagged data
@@ -35,6 +37,15 @@ where
     }
 }
 
+impl<T> Into<Vec<u8>> for Tagged<T>
+where
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
+{
+    fn into(self) -> Vec<u8> {
+        self.encode_into()
+    }
+}
+
 impl<T> EncodeInto for Tagged<T>
 where
     T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
@@ -49,9 +60,8 @@ where
 impl<T> TryFrom<&[u8]> for Tagged<T>
 where
     T: CodecInfo + DefaultEncoding + EncodeInto + for<'a> TryDecodeFrom<'a>,
-    for<'a> Error: From<<T as TryDecodeFrom<'a>>::Error>,
 {
-    type Error = Error;
+    type Error = TaggedError;
 
     fn try_from(v: &[u8]) -> Result<Self, Self::Error> {
         let (s, _) = Self::try_decode_from(v)?;
@@ -62,19 +72,18 @@ where
 impl<'a, T> TryDecodeFrom<'a> for Tagged<T>
 where
     T: CodecInfo + DefaultEncoding + EncodeInto + for<'b> TryDecodeFrom<'b>,
-    for<'b> Error: From<<T as TryDecodeFrom<'b>>::Error>,
 {
-    type Error = Error;
+    type Error = TaggedError;
 
     fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
-        let (codec, ptr) = Codec::try_decode_from(bytes)?;
+        let (codec, ptr) = Codec::try_decode_from(bytes).map_err(|_| TaggedError::SigilFailed)?;
         if codec != T::codec() {
-            return Err(Error::IncorrectSigil {
+            return Err(TaggedError::IncorrectSigil {
                 expected: T::codec(),
                 received: codec,
             });
         }
-        let (t, ptr) = T::try_decode_from(ptr)?;
+        let (t, ptr) = T::try_decode_from(ptr).map_err(|_| TaggedError::ValueFailed)?;
         Ok((Self(t), ptr))
     }
 }

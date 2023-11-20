@@ -112,27 +112,6 @@ mod test {
     }
 
     #[test]
-    fn test_to_slice() {
-        let betu = BaseTagged::default();
-        assert_eq!(betu.encode_into(), vec![0x31, 0x42, 0xaa]);
-    }
-
-    #[test]
-    fn test_from_slice() {
-        let bytes = vec![0x31, 0x42, 0xaa];
-        let (betu, _) = BaseTagged::try_decode_from(bytes.as_slice()).unwrap();
-        assert_eq!(BaseTagged::default(), betu);
-    }
-
-    #[test]
-    fn test_binary_round_trip() {
-        let betu1 = BaseTagged::default();
-        let v = betu1.encode_into();
-        let (betu2, _) = BaseTagged::try_decode_from(&v).unwrap();
-        assert_eq!(betu1, betu2);
-    }
-
-    #[test]
     fn test_string_round_trip() {
         let betu1 = BaseTagged::default();
         let s = betu1.to_string();
