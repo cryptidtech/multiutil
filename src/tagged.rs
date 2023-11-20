@@ -24,6 +24,16 @@ where
             t,
         }
     }
+
+    /// Construct a Tagged smart pointer with the given codec
+    pub fn new_codec(codec: Codec, t: T) -> Self {
+        Self { codec, t }
+    }
+
+    /// Convert to the inner T type, consuming self
+    pub fn to_inner(self) -> T {
+        self.t
+    }
 }
 
 impl<T> CodecInfo for Tagged<T>
