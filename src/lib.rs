@@ -118,6 +118,15 @@ mod test {
         let betu2 = BaseTagged::try_from(s.as_str()).unwrap();
         assert_eq!(betu1, betu2);
     }
+
+    #[test]
+    fn test_bytes_round_trip() {
+        let betu1 = BaseTagged::default();
+        let s = betu1.encode_into();
+        let (betu2, _) = BaseTagged::try_decode_from(s.as_slice()).unwrap();
+        assert_eq!(betu1, betu2);
+    }
+
     #[test]
     fn test_smart_pointer() {
         let betu = BaseTagged::default();

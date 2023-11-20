@@ -1,4 +1,6 @@
-use crate::prelude::{base_name, Base, BaseEncodedError, CodecInfo, DefaultEncoding, EncodeInto};
+use crate::prelude::{
+    base_name, Base, BaseEncodedError, CodecInfo, DefaultEncoding, EncodeInto, TryDecodeFrom,
+};
 use core::{fmt, ops};
 
 /// Smart pointer for multibase encoded data. This supports encoding to and
@@ -46,6 +48,24 @@ where
             }),
             Err(e) => Err(BaseEncodedError::Multibase(e)),
         }
+    }
+}
+
+impl<'a, T> TryDecodeFrom<'a> for BaseEncoded<T>
+where
+    T: CodecInfo + DefaultEncoding + EncodeInto + for<'b> TryDecodeFrom<'b>,
+{
+    type Error = BaseEncodedError;
+
+    fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
+        let (t, ptr) = T::try_decode_from(bytes).map_err(|_| BaseEncodedError::ValueFailed)?;
+        Ok((
+            Self {
+                base: T::encoding(),
+                t,
+            },
+            ptr,
+        ))
     }
 }
 
