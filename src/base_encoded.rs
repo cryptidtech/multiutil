@@ -1,5 +1,5 @@
 use crate::prelude::{
-    base_name, Base, BaseEncodedError, CodecInfo, EncodeInto, EncodingInfo, TryDecodeFrom,
+    base_name, Base, BaseEncodedError, Codec, CodecInfo, EncodeInto, EncodingInfo, TryDecodeFrom,
 };
 use core::{fmt, ops};
 
@@ -10,8 +10,7 @@ pub struct BaseEncoded<T>
 where
     T: CodecInfo + EncodingInfo + ?Sized,
 {
-    /// The multibase encoding codec
-    pub base: Base,
+    base: Base,
     t: T,
 }
 
@@ -36,6 +35,36 @@ where
     /// Convert to the inner T type, consuming self
     pub fn to_inner(self) -> T {
         self.t
+    }
+}
+
+impl<T> CodecInfo for BaseEncoded<T>
+where
+    T: CodecInfo + EncodingInfo,
+{
+    /// Return the codec hint for the contained type
+    fn preferred_codec() -> Codec {
+        T::preferred_codec()
+    }
+
+    /// Return the codec used to encoding the contained object
+    fn codec(&self) -> Codec {
+        self.t.codec()
+    }
+}
+
+impl<T> EncodingInfo for BaseEncoded<T>
+where
+    T: CodecInfo + EncodingInfo,
+{
+    /// Return the encoding hint for the contained type
+    fn preferred_encoding() -> Base {
+        T::preferred_encoding()
+    }
+
+    /// Return the encoding used to encode the contained object
+    fn encoding(&self) -> Base {
+        self.base
     }
 }
 

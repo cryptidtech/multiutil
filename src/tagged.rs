@@ -5,9 +5,13 @@ use core::{fmt, ops};
 
 /// Smart pointer for multicodec tagged data
 #[derive(PartialEq)]
-pub struct Tagged<T>(T)
+pub struct Tagged<T>
 where
-    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized;
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+{
+    codec: Codec,
+    t: T,
+}
 
 impl<T> Tagged<T>
 where
@@ -15,7 +19,10 @@ where
 {
     /// Construct a Tagged smart pointer with the given multicodec codec
     pub fn new(t: T) -> Self {
-        Self(t)
+        Self {
+            codec: T::preferred_codec(),
+            t,
+        }
     }
 }
 
@@ -23,12 +30,14 @@ impl<T> CodecInfo for Tagged<T>
 where
     T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
+    /// Return the codec hint for the contained type
     fn preferred_codec() -> Codec {
         T::preferred_codec()
     }
 
+    /// Return the codec for the contained object
     fn codec(&self) -> Codec {
-        self.0.codec()
+        self.codec
     }
 }
 
@@ -36,12 +45,14 @@ impl<T> EncodingInfo for Tagged<T>
 where
     T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
+    /// Return the encoding hint for the contained type
     fn preferred_encoding() -> Base {
         T::preferred_encoding()
     }
 
+    /// Return the encoding hint again because string encoding wraps Tagged<T>
     fn encoding(&self) -> Base {
-        self.0.encoding()
+        Self::preferred_encoding()
     }
 }
 
@@ -60,7 +71,7 @@ where
 {
     fn encode_into(&self) -> Vec<u8> {
         let mut v = self.codec().encode_into();
-        v.append(&mut self.0.encode_into());
+        v.append(&mut self.t.encode_into());
         v
     }
 }
@@ -92,7 +103,7 @@ where
             });
         }
         let (t, ptr) = T::try_decode_from(ptr).map_err(|_| TaggedError::ValueFailed)?;
-        Ok((Self(t), ptr))
+        Ok((Self { codec, t }, ptr))
     }
 }
 
@@ -104,7 +115,7 @@ where
 
     #[inline(always)]
     fn deref(&self) -> &T {
-        &self.0
+        &self.t
     }
 }
 
@@ -116,9 +127,9 @@ where
         write!(
             f,
             "{} (0x{:x}) - {:?}",
-            self.0.codec().as_str(),
-            self.0.codec().code(),
-            self.0
+            self.codec().as_str(),
+            self.codec().code(),
+            self.t
         )
     }
 }
