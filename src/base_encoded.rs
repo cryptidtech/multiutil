@@ -32,6 +32,11 @@ where
     pub fn new_base(base: Base, t: T) -> Self {
         Self { base, t }
     }
+
+    /// Convert to the inner T type, consuming self
+    pub fn to_inner(self) -> T {
+        self.t
+    }
 }
 
 impl<T> TryFrom<&str> for BaseEncoded<T>
