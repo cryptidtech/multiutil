@@ -129,6 +129,16 @@ where
     }
 }
 
+impl<T> ops::DerefMut for Tagged<T>
+where
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+{
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.t
+    }
+}
+
 impl<T> fmt::Debug for Tagged<T>
 where
     T: fmt::Debug + CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,

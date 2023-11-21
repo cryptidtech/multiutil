@@ -124,6 +124,16 @@ where
     }
 }
 
+impl<T> ops::DerefMut for BaseEncoded<T>
+where
+    T: CodecInfo + EncodingInfo,
+{
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.t
+    }
+}
+
 impl<T> fmt::Display for BaseEncoded<T>
 where
     T: CodecInfo + EncodingInfo + EncodeInto,
