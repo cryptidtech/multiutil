@@ -4,7 +4,7 @@ use crate::prelude::{
 use core::{fmt, ops};
 
 /// Smart pointer for multicodec tagged data
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Tagged<T>
 where
     T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,

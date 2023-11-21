@@ -6,6 +6,7 @@ use core::{fmt, ops};
 /// Smart pointer for multibase encoded data. This supports encoding to and
 /// decoding from multibase encoding strings using [`TryFrom<&str>`] and
 ///
+#[derive(Clone)]
 pub struct BaseEncoded<T>
 where
     T: CodecInfo + EncodingInfo + ?Sized,
