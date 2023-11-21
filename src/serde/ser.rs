@@ -1,6 +1,6 @@
 use crate::prelude::{BaseEncoded, CodecInfo, EncodeInto, EncodingInfo, Tagged, TryDecodeFrom};
 use core::ops::Deref;
-use serde::ser::{self, SerializeTuple};
+use serde::ser;
 
 /// Serialize instance of [`crate::prelude::Tagged`] into varuint encoded bytes
 impl<T> ser::Serialize for Tagged<T>
@@ -11,10 +11,7 @@ where
     where
         S: ser::Serializer,
     {
-        let mut t = serializer.serialize_tuple(2)?;
-        t.serialize_element(&self.codec())?;
-        t.serialize_element(self.deref())?;
-        t.end()
+        (self.codec(), self.deref()).serialize(serializer)
     }
 }
 
@@ -27,6 +24,10 @@ where
     where
         S: ser::Serializer,
     {
-        serializer.serialize_str(self.to_string().as_str())
+        if serializer.is_human_readable() {
+            self.to_string().as_str().serialize(serializer)
+        } else {
+            self.t.serialize(serializer)
+        }
     }
 }

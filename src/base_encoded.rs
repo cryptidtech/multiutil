@@ -10,8 +10,8 @@ pub struct BaseEncoded<T>
 where
     T: CodecInfo + EncodingInfo + ?Sized,
 {
-    base: Base,
-    t: T,
+    pub(crate) base: Base,
+    pub(crate) t: T,
 }
 
 impl<T> BaseEncoded<T>

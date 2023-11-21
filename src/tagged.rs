@@ -9,8 +9,8 @@ pub struct Tagged<T>
 where
     T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
 {
-    codec: Codec,
-    t: T,
+    pub(crate) codec: Codec,
+    pub(crate) t: T,
 }
 
 impl<T> Tagged<T>
