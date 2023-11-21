@@ -20,7 +20,7 @@ where
     /// Construct a Tagged smart pointer with the given multicodec codec
     pub fn new(t: T) -> Self {
         Self {
-            codec: T::preferred_codec(),
+            codec: t.codec(),
             t,
         }
     }
