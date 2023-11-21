@@ -117,9 +117,18 @@ where
     }
 }
 
+impl<T> Default for Tagged<T>
+where
+    T: CodecInfo + Default + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
+{
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+
 impl<T> ops::Deref for Tagged<T>
 where
-    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     type Target = T;
 
@@ -131,7 +140,7 @@ where
 
 impl<T> ops::DerefMut for Tagged<T>
 where
-    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -141,7 +150,7 @@ where
 
 impl<T> fmt::Debug for Tagged<T>
 where
-    T: fmt::Debug + CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: fmt::Debug + CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(

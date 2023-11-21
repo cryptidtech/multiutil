@@ -104,6 +104,15 @@ where
     }
 }
 
+impl<T> Default for BaseEncoded<T>
+where
+    T: CodecInfo + Default + EncodingInfo + PartialEq<T> + ?Sized,
+{
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+
 impl<T> PartialEq for BaseEncoded<T>
 where
     T: CodecInfo + EncodingInfo + PartialEq<T> + ?Sized,

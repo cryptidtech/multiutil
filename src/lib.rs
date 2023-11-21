@@ -101,12 +101,6 @@ mod test {
 
     type BaseTagged = BaseEncoded<Tagged<Unit>>;
 
-    impl Default for BaseTagged {
-        fn default() -> Self {
-            BaseEncoded::new(Tagged::new(Unit::default()))
-        }
-    }
-
     #[test]
     fn test_display() {
         let betu = BaseTagged::default();
