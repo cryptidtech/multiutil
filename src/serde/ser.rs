@@ -1,24 +1,10 @@
-use crate::prelude::{BaseEncoded, CodecInfo, EncodeInto, EncodingInfo, Tagged, TryDecodeFrom};
-use core::ops::Deref;
+use crate::prelude::{BaseEncoded, EncodingInfo};
 use serde::ser;
-
-/// Serialize instance of [`crate::prelude::Tagged`] into varuint encoded bytes
-impl<T> ser::Serialize for Tagged<T>
-where
-    T: ser::Serialize + CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
-        (self.codec(), self.deref()).serialize(serializer)
-    }
-}
 
 /// Serialize instance of [`crate::prelude::BaseEncoded`] into a string
 impl<T> ser::Serialize for BaseEncoded<T>
 where
-    T: ser::Serialize + CodecInfo + EncodingInfo + EncodeInto + for<'a> TryDecodeFrom<'a> + ?Sized,
+    T: ser::Serialize + EncodingInfo + Clone + Into<Vec<u8>> + ?Sized,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
