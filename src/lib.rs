@@ -33,11 +33,11 @@ pub mod serde;
 
 /// Varbytes type for forcing serde of Vec<u8> to/from bytes
 pub mod varbytes;
-pub use varbytes::Varbytes;
+pub use varbytes::{EncodedVarbytes, Varbytes};
 
 /// Varunit type for handling serde of numeric types
 pub mod varuint;
-pub use varuint::Varuint;
+pub use varuint::{EncodedVaruint, Varuint};
 
 /// one-stop shop for all exported symbols
 pub mod prelude {

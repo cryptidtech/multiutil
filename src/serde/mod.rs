@@ -246,6 +246,12 @@ mod tests {
     }
 
     #[test]
+    fn test_usize_encoded() {
+        let v = Varuint::encoded_new(0x0100_0000_0000_0000_usize);
+        assert_tokens(&v.readable(), &[Token::Str("f808080808080808001")]);
+    }
+
+    #[test]
     fn test_varbytes() {
         let v = Varbytes(vec![0x01, 0x02, 0x03]);
         assert_tokens(&v, &[Token::Bytes(&[0x03, 0x01, 0x02, 0x03])]);

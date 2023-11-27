@@ -11,7 +11,7 @@ pub type EncodedVarbytes = BaseEncoded<Varbytes>;
 impl Varbytes {
     /// create an encoded varbytes
     pub fn encoded_new(v: Vec<u8>) -> EncodedVarbytes {
-        BaseEncoded::new(Varbytes(v.clone()))
+        BaseEncoded::new(Varbytes(v))
     }
 
     /// consume self and return inner vec
