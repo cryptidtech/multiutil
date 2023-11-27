@@ -32,6 +32,12 @@ impl EncodingInfo for Varbytes {
 
 impl Into<Vec<u8>> for Varbytes {
     fn into(self) -> Vec<u8> {
+        self.clone().encode_into()
+    }
+}
+
+impl EncodeInto for Varbytes {
+    fn encode_into(&self) -> Vec<u8> {
         let mut v = self.0.len().encode_into();
         v.append(&mut self.0.clone());
         v
@@ -42,8 +48,18 @@ impl<'a> TryFrom<&'a [u8]> for Varbytes {
     type Error = Error;
 
     fn try_from(s: &'a [u8]) -> Result<Self, Error> {
-        let (len, ptr) = usize::try_decode_from(s)?;
+        let (v, _) = Self::try_decode_from(s)?;
+        Ok(v)
+    }
+}
+
+impl<'a> TryDecodeFrom<'a> for Varbytes {
+    type Error = Error;
+
+    fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
+        let (len, ptr) = usize::try_decode_from(bytes)?;
         let v = ptr[..len].to_vec();
-        Ok(Varbytes(v))
+        let ptr = &ptr[len..];
+        Ok((Self(v), ptr))
     }
 }
