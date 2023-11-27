@@ -15,7 +15,7 @@ impl Varbytes {
     }
 
     /// consume self and return inner vec
-    pub fn into_inner(self) -> Vec<u8> {
+    pub fn to_inner(self) -> Vec<u8> {
         self.0
     }
 }
