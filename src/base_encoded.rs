@@ -52,6 +52,15 @@ where
     }
 }
 
+impl<T> From<T> for BaseEncoded<T>
+where
+    T: EncodingInfo,
+{
+    fn from(t: T) -> Self {
+        Self::new(t)
+    }
+}
+
 impl<T> TryFrom<&str> for BaseEncoded<T>
 where
     T: EncodingInfo + for<'a> TryFrom<&'a [u8]>,
