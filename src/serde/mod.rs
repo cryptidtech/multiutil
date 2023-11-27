@@ -250,4 +250,10 @@ mod tests {
         let v = Varbytes(vec![0x01, 0x02, 0x03]);
         assert_tokens(&v, &[Token::Bytes(&[0x03, 0x01, 0x02, 0x03])]);
     }
+
+    #[test]
+    fn test_encoded_varbytes() {
+        let v = Varbytes::encoded_new(vec![0x01, 0x02, 0x03]);
+        assert_tokens(&v.readable(), &[Token::Str("f03010203")]);
+    }
 }
