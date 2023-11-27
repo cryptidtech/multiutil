@@ -244,4 +244,10 @@ mod tests {
             ])],
         )
     }
+
+    #[test]
+    fn test_varbytes() {
+        let v = Varbytes(vec![0x01, 0x02, 0x03]);
+        assert_tokens(&v, &[Token::Bytes(&[0x03, 0x01, 0x02, 0x03])]);
+    }
 }

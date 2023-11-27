@@ -31,6 +31,10 @@ pub use error::Error;
 #[cfg(feature = "serde")]
 pub mod serde;
 
+/// Varbytes type for forcing serde of Vec<u8> to/from bytes
+pub mod varbytes;
+pub use varbytes::Varbytes;
+
 /// Varunit type for handling serde of numeric types
 pub mod varuint;
 pub use varuint::Varuint;
@@ -38,7 +42,8 @@ pub use varuint::Varuint;
 /// one-stop shop for all exported symbols
 pub mod prelude {
     pub use super::{
-        base_encoded::*, base_name::*, codec_info::*, encoding_info::*, error::*, varuint::*,
+        base_encoded::*, base_name::*, codec_info::*, encoding_info::*, error::*, varbytes::*,
+        varuint::*,
     };
 
     /// re-exports

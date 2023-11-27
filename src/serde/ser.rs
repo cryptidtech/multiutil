@@ -1,8 +1,8 @@
-use crate::prelude::{BaseEncoded, EncodingInfo, Varuint};
+use crate::prelude::{BaseEncoded, EncodingInfo, Varbytes, Varuint};
 use multitrait::prelude::EncodeInto;
 use serde::ser;
 
-/// Serialize instance of [`crate::prelude::BaseEncoded`] into
+/// Serialize instance of [`crate::BaseEncoded`] into
 impl<T> ser::Serialize for BaseEncoded<T>
 where
     T: ser::Serialize + EncodingInfo + Clone + Into<Vec<u8>> + ?Sized,
@@ -19,7 +19,7 @@ where
     }
 }
 
-/// Serialize instance of [`crate::prelude::Varuint`]
+/// Serialize instance of [`crate::Varuint`]
 impl<T> ser::Serialize for Varuint<T>
 where
     T: EncodeInto,
@@ -29,5 +29,17 @@ where
         S: ser::Serializer,
     {
         serializer.serialize_bytes(self.0.encode_into().as_slice())
+    }
+}
+
+/// Serialize instance of [`crate::Varbytes`]
+impl ser::Serialize for Varbytes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        let mut v = self.0.len().encode_into();
+        v.append(&mut self.0.clone());
+        serializer.serialize_bytes(v.as_slice())
     }
 }
