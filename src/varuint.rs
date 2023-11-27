@@ -68,8 +68,20 @@ where
     type Error = Error;
 
     fn try_from(s: &'a [u8]) -> Result<Self, Error> {
-        let (t, _) =
-            T::try_decode_from(s).map_err(|_| Error::custom("failed to decode varuint"))?;
-        Ok(Varuint(t))
+        let (t, _) = Self::try_decode_from(s)?;
+        Ok(t)
+    }
+}
+
+impl<'a, T> TryDecodeFrom<'a> for Varuint<T>
+where
+    T: TryDecodeFrom<'a>,
+{
+    type Error = Error;
+
+    fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
+        let (t, ptr) =
+            T::try_decode_from(bytes).map_err(|_| Error::custom("failed to decode varuint"))?;
+        Ok((Self(t), ptr))
     }
 }
