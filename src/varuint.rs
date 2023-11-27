@@ -3,12 +3,21 @@ use multitrait::prelude::EncodeInto;
 
 /// A wrapper type to handle serde of numeric types as varuint bytes
 #[derive(Clone, PartialEq)]
-pub struct Varuint<T>(pub(crate) T);
+pub struct Varuint<T>(pub T);
 
 impl<T> Varuint<T> {
     /// consume self and return inner value
     pub fn into_inner(self) -> T {
         self.0
+    }
+}
+
+impl<T> Default for Varuint<T>
+where
+    T: Default,
+{
+    fn default() -> Self {
+        Self(T::default())
     }
 }
 
