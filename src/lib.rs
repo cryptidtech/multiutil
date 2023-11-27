@@ -9,15 +9,19 @@
 
 /// BaseEncoded smart pointer
 pub mod base_encoded;
+pub use base_encoded::BaseEncoded;
 
 /// base_name function
 pub mod base_name;
+pub use base_name::base_name;
 
 /// CodecInfo trait
 pub mod codec_info;
+pub use codec_info::CodecInfo;
 
 /// EncodingInfo trait
 pub mod encoding_info;
+pub use encoding_info::EncodingInfo;
 
 /// Errors generated from the implementations
 pub mod error;
@@ -27,9 +31,15 @@ pub use error::Error;
 #[cfg(feature = "serde")]
 pub mod serde;
 
+/// Varunit type for handling serde of numeric types
+pub mod varuint;
+pub use varuint::Varuint;
+
 /// one-stop shop for all exported symbols
 pub mod prelude {
-    pub use super::{base_encoded::*, base_name::*, codec_info::*, encoding_info::*, error::*};
+    pub use super::{
+        base_encoded::*, base_name::*, codec_info::*, encoding_info::*, error::*, varuint::*,
+    };
 
     /// re-exports
     pub use multibase::Base;

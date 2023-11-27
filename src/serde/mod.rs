@@ -7,7 +7,6 @@ mod tests {
     use crate::prelude::{Error, *};
     use serde::{de, ser};
     use serde_test::{assert_tokens, Configure, Token};
-    //use std::fmt;
 
     #[derive(Clone, Debug, PartialEq)]
     struct Unit((u8, [u8; 2]));
@@ -110,5 +109,139 @@ mod tests {
         let unit = Unit::encoded_default();
         let unit_cbor = serde_cbor::to_vec(&unit).unwrap();
         assert_eq!(unit_cbor, hex::decode("8218598218de18ad").unwrap());
+    }
+
+    #[test]
+    fn test_u8_varuint() {
+        let v = Varuint(0x01_u8);
+        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+    }
+
+    #[test]
+    fn test_u8_long_varuint() {
+        let v = Varuint(0xFF_u8);
+        assert_tokens(&v, &[Token::Bytes(&[0xFF, 0x01])])
+    }
+
+    #[test]
+    fn test_u16_varuint() {
+        let v = Varuint(0x0100_u16);
+        assert_tokens(&v, &[Token::Bytes(&[0x80, 0x02])])
+    }
+
+    #[test]
+    fn test_u16_short_varuint() {
+        let v = Varuint(0x0001_u16);
+        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+    }
+
+    #[test]
+    fn test_u16_long_varuint() {
+        let v = Varuint(0xFFFF_u16);
+        assert_tokens(&v, &[Token::Bytes(&[0xFF, 0xFF, 0x03])])
+    }
+
+    #[test]
+    fn test_u32_varuint() {
+        let v = Varuint(0x0100_0000_u32);
+        assert_tokens(&v, &[Token::Bytes(&[0x80, 0x80, 0x80, 0x08])])
+    }
+
+    #[test]
+    fn test_u32_short_varuint() {
+        let v = Varuint(0x0000_0001_u32);
+        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+    }
+
+    #[test]
+    fn test_u32_long_varuint() {
+        let v = Varuint(0xFFFF_FFFF_u32);
+        assert_tokens(&v, &[Token::Bytes(&[0xFF, 0xFF, 0xFF, 0xFF, 0x0F])])
+    }
+
+    #[test]
+    fn test_u64_varuint() {
+        let v = Varuint(0x0100_0000_0000_0000_u64);
+        assert_tokens(
+            &v,
+            &[Token::Bytes(&[
+                0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x01,
+            ])],
+        )
+    }
+
+    #[test]
+    fn test_u64_short_varuint() {
+        let v = Varuint(0x0000_0000_0000_0001_u64);
+        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+    }
+
+    #[test]
+    fn test_u64_long_varuint() {
+        let v = Varuint(0xFFFF_FFFF_FFFF_FFFF_u64);
+        assert_tokens(
+            &v,
+            &[Token::Bytes(&[
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01,
+            ])],
+        )
+    }
+
+    #[test]
+    fn test_u128_varuint() {
+        let v = Varuint(0x0100_0000_0000_0000_0000_0000_0000_0000_u128);
+        assert_tokens(
+            &v,
+            &[Token::Bytes(&[
+                0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                0x80, 0x80, 0x80, 0x02,
+            ])],
+        )
+    }
+
+    #[test]
+    fn test_u128_short_varuint() {
+        let v = Varuint(0x0000_0000_0000_0000_0000_0000_0000_0001_u128);
+        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+    }
+
+    #[test]
+    fn test_u128_long_varuint() {
+        let v = Varuint(0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_u128);
+        assert_tokens(
+            &v,
+            &[Token::Bytes(&[
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0x03,
+            ])],
+        )
+    }
+
+    #[test]
+    fn test_usize_varuint() {
+        let v = Varuint(0x0100_0000_0000_0000_usize);
+        assert_tokens(
+            &v,
+            &[Token::Bytes(&[
+                0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x01,
+            ])],
+        )
+    }
+
+    #[test]
+    fn test_usize_short_varuint() {
+        let v = Varuint(0x0000_0000_0000_0001_usize);
+        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+    }
+
+    #[test]
+    fn test_usize_long_varuint() {
+        let v = Varuint(0xFFFF_FFFF_FFFF_FFFF_usize);
+        assert_tokens(
+            &v,
+            &[Token::Bytes(&[
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01,
+            ])],
+        )
     }
 }
