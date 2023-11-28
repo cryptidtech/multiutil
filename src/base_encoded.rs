@@ -91,6 +91,8 @@ where
     }
 }
 
+impl<T> Eq for BaseEncoded<T> where T: EncodingInfo + Eq + ?Sized {}
+
 impl<T> Hash for BaseEncoded<T>
 where
     T: EncodingInfo + Clone + Into<Vec<u8>>,
