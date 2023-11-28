@@ -93,7 +93,7 @@ where
 
 impl<T> Hash for BaseEncoded<T>
 where
-    T: fmt::Display + EncodingInfo,
+    T: EncodingInfo + Clone + Into<Vec<u8>>,
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
         let s = self.to_string();
