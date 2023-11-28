@@ -1,5 +1,9 @@
 use crate::prelude::{base_name, Base, BaseEncodedError, EncodingInfo};
-use core::{fmt, ops};
+use core::{
+    fmt,
+    hash::{Hash, Hasher},
+    ops,
+};
 
 /// Smart pointer for multibase encoded data. This supports encoding to and
 /// decoding from multibase encoding strings using [`TryFrom<&str>`] and
@@ -84,6 +88,16 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.base == other.base && self.t == other.t
+    }
+}
+
+impl<T> Hash for BaseEncoded<T>
+where
+    T: fmt::Display + EncodingInfo,
+{
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let s = self.to_string();
+        s.hash(state);
     }
 }
 
