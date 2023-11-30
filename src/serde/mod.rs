@@ -114,49 +114,49 @@ mod tests {
     #[test]
     fn test_u8_varuint() {
         let v = Varuint(0x01_u8);
-        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0x01])])
     }
 
     #[test]
     fn test_u8_long_varuint() {
         let v = Varuint(0xFF_u8);
-        assert_tokens(&v, &[Token::Bytes(&[0xFF, 0x01])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0xFF, 0x01])])
     }
 
     #[test]
     fn test_u16_varuint() {
         let v = Varuint(0x0100_u16);
-        assert_tokens(&v, &[Token::Bytes(&[0x80, 0x02])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0x80, 0x02])])
     }
 
     #[test]
     fn test_u16_short_varuint() {
         let v = Varuint(0x0001_u16);
-        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0x01])])
     }
 
     #[test]
     fn test_u16_long_varuint() {
         let v = Varuint(0xFFFF_u16);
-        assert_tokens(&v, &[Token::Bytes(&[0xFF, 0xFF, 0x03])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0xFF, 0xFF, 0x03])])
     }
 
     #[test]
     fn test_u32_varuint() {
         let v = Varuint(0x0100_0000_u32);
-        assert_tokens(&v, &[Token::Bytes(&[0x80, 0x80, 0x80, 0x08])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0x80, 0x80, 0x80, 0x08])])
     }
 
     #[test]
     fn test_u32_short_varuint() {
         let v = Varuint(0x0000_0001_u32);
-        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0x01])])
     }
 
     #[test]
     fn test_u32_long_varuint() {
         let v = Varuint(0xFFFF_FFFF_u32);
-        assert_tokens(&v, &[Token::Bytes(&[0xFF, 0xFF, 0xFF, 0xFF, 0x0F])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0xFF, 0xFF, 0xFF, 0xFF, 0x0F])])
     }
 
     #[test]
@@ -164,7 +164,7 @@ mod tests {
         let v = Varuint(0x0100_0000_0000_0000_u64);
         assert_tokens(
             &v,
-            &[Token::Bytes(&[
+            &[Token::BorrowedBytes(&[
                 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x01,
             ])],
         )
@@ -173,7 +173,7 @@ mod tests {
     #[test]
     fn test_u64_short_varuint() {
         let v = Varuint(0x0000_0000_0000_0001_u64);
-        assert_tokens(&v, &[Token::Bytes(&[0x01])])
+        assert_tokens(&v, &[Token::BorrowedBytes(&[0x01])])
     }
 
     #[test]
@@ -181,7 +181,7 @@ mod tests {
         let v = Varuint(0xFFFF_FFFF_FFFF_FFFF_u64);
         assert_tokens(
             &v,
-            &[Token::Bytes(&[
+            &[Token::BorrowedBytes(&[
                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01,
             ])],
         )
