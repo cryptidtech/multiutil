@@ -6,11 +6,11 @@ use thiserror::Error;
 pub enum Error {
     /// Multitrait decode error
     #[error(transparent)]
-    Multtrait(#[from] multitrait::Error),
+    Multitrait(#[from] multitrait::Error),
 
     /// Multicodec decode error
     #[error(transparent)]
-    Multcodec(#[from] multicodec::Error),
+    Multicodec(#[from] multicodec::Error),
 
     /// BaseEncoded error
     #[error(transparent)]

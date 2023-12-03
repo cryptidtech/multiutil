@@ -1,5 +1,6 @@
-use crate::prelude::{Base, BaseEncoded, EncodingInfo, Error};
-use core::fmt;
+use crate::{BaseEncoded, EncodingInfo, Error};
+use core::{fmt, ops};
+use multibase::Base;
 use multitrait::prelude::{EncodeInto, TryDecodeFrom};
 
 /// A wrapper type to handle serde of numeric types as varuint bytes
@@ -39,6 +40,15 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self.0.encode_into().as_slice())
+    }
+}
+
+impl<T> ops::Deref for Varuint<T> {
+    type Target = T;
+
+    #[inline(always)]
+    fn deref(&self) -> &T {
+        &self.0
     }
 }
 
@@ -83,5 +93,43 @@ where
         let (t, ptr) =
             T::try_decode_from(bytes).map_err(|_| Error::custom("failed to decode varuint"))?;
         Ok((Self(t), ptr))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let v = Varuint::<u64>::default();
+        assert_eq!(0_u64, *v);
+    }
+
+    #[test]
+    fn test_to_inner() {
+        let v = Varuint(42_u64);
+        assert_eq!(42_u64, v.to_inner());
+    }
+
+    #[test]
+    fn test_encode_decode_round_trip() {
+        let v1 = Varuint(42_u64);
+        let (v2, _) = Varuint::<u64>::try_decode_from(&v1.encode_into()).unwrap();
+        assert_eq!(v1, v2);
+    }
+
+    #[test]
+    fn test_into_tryfrom_round_trip() {
+        let v1 = Varuint(42_u64);
+        let data: Vec<u8> = v1.clone().into();
+        let v2 = Varuint::<u64>::try_from(data.as_slice()).unwrap();
+        assert_eq!(v1, v2);
+    }
+
+    #[test]
+    fn test_debug() {
+        let v = Varuint(0xed_u64);
+        assert_eq!("[237, 1]".to_string(), format!("{:?}", v));
     }
 }
