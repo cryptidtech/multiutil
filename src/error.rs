@@ -36,6 +36,10 @@ pub enum BaseEncodedError {
     #[error(transparent)]
     Multibase(#[from] multibase::Error),
 
+    /// Base58 decode error
+    #[error("Base58 error: {0}")]
+    Base58(String),
+
     /// Value decoding failed
     #[error("Failed to decode the tagged value")]
     ValueFailed,
