@@ -1,4 +1,4 @@
-use crate::prelude::{BaseEncoded, EncodingInfo, Varbytes, Varuint};
+use crate::{BaseEncoded, EncodingInfo, Varbytes, Varuint};
 use core::{fmt, marker};
 use multitrait::prelude::TryDecodeFrom;
 use serde::de;
@@ -14,16 +14,11 @@ where
     {
         if deserializer.is_human_readable() {
             let s: String = de::Deserialize::deserialize(deserializer)?;
-            match multibase::decode(s.as_str()) {
-                Ok((base, v)) => {
-                    let t = T::try_from(&v).map_err(|_| de::Error::custom("failed".to_string()))?;
-                    Ok(Self { base, t })
-                }
-                Err(e) => Err(de::Error::custom(e.to_string())),
-            }
+            Self::try_from(s.as_str()).map_err(|e| de::Error::custom(e.to_string()))
         } else {
             let t: T = de::Deserialize::deserialize(deserializer)?;
             Ok(Self {
+                enc: marker::PhantomData,
                 base: T::preferred_encoding(),
                 t,
             })

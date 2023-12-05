@@ -1,7 +1,10 @@
-use crate::prelude::{base_name, Base, BaseEncodedError, EncodingInfo};
+use crate::{
+    base_name, error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, MultibaseEncoder,
+};
 use core::{
     fmt,
     hash::{Hash, Hasher},
+    marker::PhantomData,
     ops,
 };
 
@@ -9,30 +12,40 @@ use core::{
 /// decoding from multibase encoding strings using [`TryFrom<&str>`] and
 /// ['to_string()']
 #[derive(Clone)]
-pub struct BaseEncoded<T>
+pub struct BaseEncoded<T, Enc = MultibaseEncoder>
 where
     T: EncodingInfo + ?Sized,
+    Enc: BaseEncoder,
 {
+    pub(crate) enc: PhantomData<Enc>,
     pub(crate) base: Base,
     pub(crate) t: T,
 }
 
-impl<T> BaseEncoded<T>
+impl<T, Enc> BaseEncoded<T, Enc>
 where
     T: EncodingInfo,
+    Enc: BaseEncoder,
 {
+    /*
     /// Construct a new BaseEncoded instance using the default base encoding
     /// from the inner type
     pub fn new(t: T) -> Self {
         Self {
             base: T::preferred_encoding(),
             t,
+            enc: PhantomData,
         }
     }
+    */
 
     /// Construct a new BaseEncoded instance with the given base
-    pub fn new_base(base: Base, t: T) -> Self {
-        Self { base, t }
+    pub fn new(base: Base, t: T) -> Self {
+        Self {
+            base,
+            t,
+            enc: PhantomData,
+        }
     }
 
     /// Convert to the inner T type, consuming self
@@ -61,30 +74,33 @@ where
     T: EncodingInfo,
 {
     fn from(t: T) -> Self {
-        Self::new(t)
+        Self::new(T::preferred_encoding(), t)
     }
 }
 
-impl<T> TryFrom<&str> for BaseEncoded<T>
+impl<T, Enc> TryFrom<&str> for BaseEncoded<T, Enc>
 where
     T: EncodingInfo + for<'a> TryFrom<&'a [u8]>,
+    Enc: BaseEncoder,
 {
     type Error = BaseEncodedError;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
-        match multibase::decode(s) {
+        match Enc::from_base_encoded(s) {
             Ok((base, v)) => Ok(Self {
                 base,
                 t: T::try_from(v.as_slice()).map_err(|_| BaseEncodedError::ValueFailed)?,
+                enc: PhantomData,
             }),
-            Err(e) => Err(BaseEncodedError::Multibase(e)),
+            Err(e) => Err(e.into()),
         }
     }
 }
 
-impl<T> PartialEq for BaseEncoded<T>
+impl<T, Enc> PartialEq for BaseEncoded<T, Enc>
 where
     T: EncodingInfo + PartialEq<T> + ?Sized,
+    Enc: BaseEncoder,
 {
     fn eq(&self, other: &Self) -> bool {
         self.base == other.base && self.t == other.t
@@ -125,22 +141,24 @@ where
     }
 }
 
-impl<T> fmt::Display for BaseEncoded<T>
+impl<T, Enc> fmt::Display for BaseEncoded<T, Enc>
 where
     T: EncodingInfo + Clone + Into<Vec<u8>>,
+    Enc: BaseEncoder,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "{}",
-            multibase::encode(self.base, &self.t.clone().into())
+            Enc::to_base_encoded(self.base, &self.t.clone().into())
         )
     }
 }
 
-impl<T> fmt::Debug for BaseEncoded<T>
+impl<T, Enc> fmt::Debug for BaseEncoded<T, Enc>
 where
     T: fmt::Debug + EncodingInfo + Clone + Into<Vec<u8>>,
+    Enc: BaseEncoder,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -149,7 +167,7 @@ where
             base_name(self.base),
             self.base.code(),
             self.t,
-            multibase::encode(self.base, &self.t.clone().into())
+            Enc::to_base_encoded(self.base, &self.t.clone().into())
         )
     }
 }

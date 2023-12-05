@@ -11,6 +11,10 @@
 pub mod base_encoded;
 pub use base_encoded::BaseEncoded;
 
+/// BaseEncoder trait and impls
+pub mod base_encoder;
+pub use base_encoder::{Base58Encoder, BaseEncoder, MultibaseEncoder};
+
 /// base_name function
 pub mod base_name;
 pub use base_name::base_name;
@@ -42,8 +46,8 @@ pub use varuint::{EncodedVaruint, Varuint};
 /// one-stop shop for all exported symbols
 pub mod prelude {
     pub use super::{
-        base_encoded::*, base_name::*, codec_info::*, encoding_info::*, error::*, varbytes::*,
-        varuint::*,
+        base_encoded::*, base_encoder::*, base_name::*, codec_info::*, encoding_info::*, error::*,
+        varbytes::*, varuint::*,
     };
 
     /// re-exports
@@ -63,10 +67,15 @@ mod test {
     #[derive(Clone, Debug, PartialEq)]
     struct Unit([u8; 2]);
     type EncodedUnit = BaseEncoded<Unit>;
+    type Base58EncodedUnit = BaseEncoded<Unit, Base58Encoder>;
 
     impl Unit {
         pub fn encoded_default() -> EncodedUnit {
-            EncodedUnit::new(Self::default())
+            EncodedUnit::new(Self::preferred_encoding(), Self::default())
+        }
+
+        pub fn base58_encoded_default() -> Base58EncodedUnit {
+            Base58EncodedUnit::new(Base::Base58Btc, Self::default())
         }
 
         pub fn value(&self) -> u8 {
@@ -123,9 +132,21 @@ mod test {
     }
 
     #[test]
+    fn test_legacy_display() {
+        let betu = Unit::base58_encoded_default();
+        assert_eq!("65F".to_string(), betu.to_string());
+    }
+
+    #[test]
     fn test_try_from_str() {
         let betu = EncodedUnit::try_from("f42aa").unwrap();
         assert_eq!(Unit::encoded_default(), betu);
+    }
+
+    #[test]
+    fn test_try_from_base58_str() {
+        let betu = Base58EncodedUnit::try_from("65F").unwrap();
+        assert_eq!(Unit::base58_encoded_default(), betu);
     }
 
     #[test]

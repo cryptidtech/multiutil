@@ -14,7 +14,7 @@ mod tests {
 
     impl Unit {
         fn encoded_default() -> EncodedUnit {
-            EncodedUnit::new(Unit::default())
+            EncodedUnit::new(Unit::preferred_encoding(), Unit::default())
         }
     }
 
@@ -247,7 +247,7 @@ mod tests {
 
     #[test]
     fn test_usize_encoded() {
-        let v = Varuint::encoded_new(0x0100_0000_0000_0000_usize);
+        let v = Varuint::encoded_new(Base::Base16Lower, 0x0100_0000_0000_0000_usize);
         assert_tokens(&v.readable(), &[Token::Str("f808080808080808001")]);
     }
 
@@ -259,7 +259,7 @@ mod tests {
 
     #[test]
     fn test_encoded_varbytes() {
-        let v = Varbytes::encoded_new(vec![0x01, 0x02, 0x03]);
+        let v = Varbytes::encoded_new(Base::Base16Lower, vec![0x01, 0x02, 0x03]);
         assert_tokens(&v.readable(), &[Token::Str("f03010203")]);
     }
 }

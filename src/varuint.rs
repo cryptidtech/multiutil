@@ -1,7 +1,7 @@
 use crate::{BaseEncoded, EncodingInfo, Error};
 use core::{fmt, ops};
 use multibase::Base;
-use multitrait::prelude::{EncodeInto, TryDecodeFrom};
+use multitrait::{EncodeInto, TryDecodeFrom};
 
 /// A wrapper type to handle serde of numeric types as varuint bytes
 #[derive(Clone, PartialEq)]
@@ -15,8 +15,8 @@ where
     T: EncodeInto + for<'a> TryDecodeFrom<'a>,
 {
     /// create a new encoded varuint
-    pub fn encoded_new(t: T) -> EncodedVaruint<T> {
-        BaseEncoded::new(Self(t))
+    pub fn encoded_new(base: Base, t: T) -> EncodedVaruint<T> {
+        BaseEncoded::new(base, Self(t))
     }
 
     /// consume self and return inner value
