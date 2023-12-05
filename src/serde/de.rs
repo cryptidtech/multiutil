@@ -1,12 +1,13 @@
-use crate::{BaseEncoded, EncodingInfo, Varbytes, Varuint};
+use crate::{BaseEncoded, BaseEncoder, EncodingInfo, Varbytes, Varuint};
 use core::{fmt, marker};
 use multitrait::prelude::TryDecodeFrom;
 use serde::de;
 
 /// Deserialize instance of [`crate::BaseEncoded`] from a byte slice
-impl<'de, T> de::Deserialize<'de> for BaseEncoded<T>
+impl<'de, T, Enc> de::Deserialize<'de> for BaseEncoded<T, Enc>
 where
     T: de::Deserialize<'de> + EncodingInfo + for<'a> TryFrom<&'a [u8]> + ?Sized,
+    Enc: BaseEncoder,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
