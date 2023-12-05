@@ -42,6 +42,6 @@ impl BaseEncoder for Base58Encoder {
         }
     }
     fn debug_string(_base: Base) -> String {
-        "Legacy Bare Base58Btc".to_string()
+        "base58Btc".to_string()
     }
 }
