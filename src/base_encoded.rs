@@ -147,12 +147,6 @@ where
     Enc: BaseEncoder,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{} - {:?} - {}",
-            Enc::debug_string(self.base),
-            self.t,
-            Enc::to_base_encoded(T::preferred_encoding(), &self.t.clone().into())
-        )
+        write!(f, "{} - {:?}", Enc::debug_string(self.base), self.t,)
     }
 }
