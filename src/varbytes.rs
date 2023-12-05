@@ -98,6 +98,14 @@ mod test {
     }
 
     #[test]
+    fn test_default_round_trip() {
+        let v1 = Varbytes::default();
+        let v: Vec<u8> = v1.clone().into();
+        let v2 = Varbytes::try_from(v.as_slice()).unwrap();
+        assert_eq!(v1, v2);
+    }
+
+    #[test]
     fn test_encode_decode_round_trip() {
         let v1 = Varbytes(vec![1, 2, 3]);
         let (v2, _) = Varbytes::try_decode_from(&v1.encode_into()).unwrap();

@@ -113,6 +113,14 @@ mod test {
     }
 
     #[test]
+    fn test_default_round_trip() {
+        let v1 = Varuint::<u64>::default();
+        let v: Vec<u8> = v1.clone().into();
+        let v2 = Varuint::<u64>::try_from(v.as_slice()).unwrap();
+        assert_eq!(v1, v2);
+    }
+
+    #[test]
     fn test_encode_decode_round_trip() {
         let v1 = Varuint(42_u64);
         let (v2, _) = Varuint::<u64>::try_decode_from(&v1.encode_into()).unwrap();
