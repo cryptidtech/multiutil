@@ -152,7 +152,7 @@ where
             "{} - {:?} - {}",
             Enc::debug_string(self.base),
             self.t,
-            Enc::to_base_encoded(self.base, &self.t.clone().into())
+            Enc::to_base_encoded(T::preferred_encoding(), &self.t.clone().into())
         )
     }
 }
