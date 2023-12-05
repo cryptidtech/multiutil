@@ -1,4 +1,4 @@
-use crate::{error::BaseEncoderError, prelude::Base};
+use crate::{base_name, error::BaseEncoderError, prelude::Base};
 use base58::{FromBase58, ToBase58};
 
 /// a trait for base encoding implementations
@@ -8,6 +8,9 @@ pub trait BaseEncoder {
 
     /// convert a base encoded value to a Vec<u8>
     fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), BaseEncoderError>;
+
+    /// get the debug string for the given base
+    fn debug_string(base: Base) -> String;
 }
 
 /// a multibase encoder implementation for use as the default encoder
@@ -19,6 +22,9 @@ impl BaseEncoder for MultibaseEncoder {
     }
     fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), BaseEncoderError> {
         Ok(multibase::decode(s)?)
+    }
+    fn debug_string(base: Base) -> String {
+        format!("{} ('{}')", base_name(base), base.code())
     }
 }
 
@@ -34,5 +40,8 @@ impl BaseEncoder for Base58Encoder {
             Ok(v) => Ok((Base::Base58Btc, v)),
             Err(e) => Err(BaseEncoderError::Base58(format!("{:?}", e))),
         }
+    }
+    fn debug_string(_base: Base) -> String {
+        "Legacy Bare Base58Btc".to_string()
     }
 }

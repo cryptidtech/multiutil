@@ -1,6 +1,4 @@
-use crate::{
-    base_name, error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, MultibaseEncoder,
-};
+use crate::{error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, MultibaseEncoder};
 use core::{
     fmt,
     hash::{Hash, Hasher},
@@ -27,18 +25,6 @@ where
     T: EncodingInfo,
     Enc: BaseEncoder,
 {
-    /*
-    /// Construct a new BaseEncoded instance using the default base encoding
-    /// from the inner type
-    pub fn new(t: T) -> Self {
-        Self {
-            base: T::preferred_encoding(),
-            t,
-            enc: PhantomData,
-        }
-    }
-    */
-
     /// Construct a new BaseEncoded instance with the given base
     pub fn new(base: Base, t: T) -> Self {
         Self {
@@ -163,9 +149,8 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{} ('{}') - {:?} - {}",
-            base_name(self.base),
-            self.base.code(),
+            "{} - {:?} - {}",
+            Enc::debug_string(self.base),
             self.t,
             Enc::to_base_encoded(self.base, &self.t.clone().into())
         )
