@@ -14,6 +14,7 @@ pub trait BaseEncoder {
 }
 
 /// a multibase encoder implementation for use as the default encoder
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MultibaseEncoder {}
 
 impl BaseEncoder for MultibaseEncoder {
@@ -29,6 +30,7 @@ impl BaseEncoder for MultibaseEncoder {
 }
 
 /// a bare Base58Btc encoder implementation for use with legacy Cids
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Base58Encoder {}
 
 impl BaseEncoder for Base58Encoder {
