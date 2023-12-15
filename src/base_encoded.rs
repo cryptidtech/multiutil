@@ -1,4 +1,6 @@
-use crate::{error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, MultibaseEncoder};
+use crate::{
+    error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, Error, MultibaseEncoder,
+};
 use core::{
     fmt,
     hash::{Hash, Hasher},
@@ -69,7 +71,7 @@ where
     T: EncodingInfo + for<'a> TryFrom<&'a [u8]>,
     Enc: BaseEncoder,
 {
-    type Error = BaseEncodedError;
+    type Error = Error;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match Enc::from_base_encoded(s) {
