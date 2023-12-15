@@ -11,6 +11,9 @@ pub enum Error {
     /// BaseEncoded error
     #[error(transparent)]
     BaseEncoded(#[from] BaseEncodedError),
+    /// BaseEncoder error
+    #[error(transparent)]
+    BaseEncoder(#[from] BaseEncoderError),
     /// Custom error for inner types to use when nothing else works
     #[error("Custom error: {0}")]
     Custom(String),
