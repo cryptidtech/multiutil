@@ -2,6 +2,7 @@ use crate::{
     error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, Error, MultibaseEncoder,
 };
 use core::{
+    cmp::Ordering,
     fmt,
     hash::{Hash, Hasher},
     marker::PhantomData,
@@ -95,7 +96,32 @@ where
     }
 }
 
-impl<T> Eq for BaseEncoded<T> where T: EncodingInfo + Eq + ?Sized {}
+impl<T, Enc> PartialOrd for BaseEncoded<T, Enc>
+where
+    T: EncodingInfo + PartialEq<T> + PartialOrd<T> + ?Sized,
+    Enc: BaseEncoder,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.t.partial_cmp(&other.t)
+    }
+}
+
+impl<T, Enc> Eq for BaseEncoded<T, Enc>
+where
+    T: EncodingInfo + Eq + ?Sized,
+    Enc: BaseEncoder,
+{
+}
+
+impl<T, Enc> Ord for BaseEncoded<T, Enc>
+where
+    T: EncodingInfo + Eq + PartialOrd<T> + Ord + ?Sized,
+    Enc: BaseEncoder,
+{
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.t.cmp(&other.t)
+    }
+}
 
 impl<T> Hash for BaseEncoded<T>
 where
