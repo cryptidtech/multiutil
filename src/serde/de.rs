@@ -1,5 +1,6 @@
 use crate::{BaseEncoded, BaseEncoder, EncodingInfo, Varbytes, Varuint};
 use core::{fmt, marker};
+use multibase::Base;
 use multitrait::prelude::TryDecodeFrom;
 use serde::de;
 
@@ -17,10 +18,10 @@ where
             let s: String = de::Deserialize::deserialize(deserializer)?;
             Self::try_from(s.as_str()).map_err(|e| de::Error::custom(e.to_string()))
         } else {
-            let t: T = de::Deserialize::deserialize(deserializer)?;
+            let (base, t): (char, T) = de::Deserialize::deserialize(deserializer)?;
             Ok(Self {
                 enc: marker::PhantomData,
-                base: T::preferred_encoding(),
+                base: Base::from_code(base).map_err(|e| de::Error::custom(e.to_string()))?,
                 t,
             })
         }

@@ -87,10 +87,13 @@ mod tests {
             &unit.compact(),
             &[
                 Token::Tuple { len: 2 },
+                Token::Char('f'),
+                Token::Tuple { len: 2 },
                 Token::U8(0x59),
                 Token::Tuple { len: 2 },
                 Token::U8(0xDE),
                 Token::U8(0xAD),
+                Token::TupleEnd,
                 Token::TupleEnd,
                 Token::TupleEnd,
             ],
@@ -108,7 +111,7 @@ mod tests {
     fn test_serde_cbor() {
         let unit = Unit::encoded_default();
         let unit_cbor = serde_cbor::to_vec(&unit).unwrap();
-        assert_eq!(unit_cbor, hex::decode("8218598218de18ad").unwrap());
+        assert_eq!(unit_cbor, hex::decode("8261668218598218de18ad").unwrap());
     }
 
     #[test]

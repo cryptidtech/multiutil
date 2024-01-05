@@ -15,7 +15,7 @@ where
         if serializer.is_human_readable() {
             self.to_string().as_str().serialize(serializer)
         } else {
-            self.t.serialize(serializer)
+            (self.base.code(), self.t.clone()).serialize(serializer)
         }
     }
 }
