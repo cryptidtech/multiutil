@@ -14,17 +14,82 @@ where
     where
         D: de::Deserializer<'de>,
     {
-        if deserializer.is_human_readable() {
-            let s: String = de::Deserialize::deserialize(deserializer)?;
-            Self::try_from(s.as_str()).map_err(|e| de::Error::custom(e.to_string()))
-        } else {
-            let (base, t): (char, T) = de::Deserialize::deserialize(deserializer)?;
-            Ok(Self {
-                enc: marker::PhantomData,
-                base: Base::from_code(base).map_err(|e| de::Error::custom(e.to_string()))?,
-                t,
-            })
+        #[derive(Clone, Default)]
+        struct BaseEncodedVisitor<T, Enc> {
+            _enc: marker::PhantomData<Enc>,
+            _t: marker::PhantomData<T>,
         }
+
+        impl<'de, T, Enc> de::Visitor<'de> for BaseEncodedVisitor<T, Enc>
+        where
+            T: de::Deserialize<'de> + EncodingInfo + for<'a> TryFrom<&'a [u8]> + ?Sized,
+            Enc: BaseEncoder,
+        {
+            type Value = BaseEncoded<T, Enc>;
+
+            fn expecting(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+                write!(fmt, "borrowed str, str, String, or tuple of (u8, T)")
+            }
+
+            // human readable
+
+            // shortest lifetime
+            #[inline]
+            fn visit_borrowed_str<E>(self, s: &'de str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(Self::Value::try_from(s).map_err(|e| de::Error::custom(e.to_string()))?)
+            }
+
+            #[inline]
+            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(Self::Value::try_from(s).map_err(|e| de::Error::custom(e.to_string()))?)
+            }
+
+            // longest lifetime
+            #[inline]
+            fn visit_string<E>(self, s: String) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(Self::Value::try_from(s.as_str())
+                    .map_err(|e| de::Error::custom(e.to_string()))?)
+            }
+
+            // binary
+            #[inline]
+            fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
+            where
+                S: de::SeqAccess<'de>,
+            {
+                let base = match seq.next_element::<char>()? {
+                    Some(b) => Base::from_code(b).map_err(|e| de::Error::custom(e.to_string()))?,
+                    None => {
+                        return Err(de::Error::custom("expected base encoding char".to_string()))
+                    }
+                };
+
+                let t = match seq.next_element()? {
+                    Some(t) => t,
+                    None => return Err(de::Error::custom("expected inner type value".to_string())),
+                };
+
+                Ok(Self::Value {
+                    enc: marker::PhantomData,
+                    base,
+                    t,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(BaseEncodedVisitor {
+            _enc: marker::PhantomData,
+            _t: marker::PhantomData,
+        })
     }
 }
 
@@ -49,12 +114,54 @@ where
                 write!(f, "varuint encoded numeric value")
             }
 
+            // only binary
+
+            // shortest lifetime
+            #[inline]
+            fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                let (t, _) = T::try_decode_from(v)
+                    .map_err(|_| de::Error::custom("failed to deserialize varuint bytes"))?;
+                Ok(Varuint(t))
+            }
+
             #[inline]
             fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
             where
                 E: de::Error,
             {
                 let (t, _) = T::try_decode_from(v)
+                    .map_err(|_| de::Error::custom("failed to deserialize varuint bytes"))?;
+                Ok(Varuint(t))
+            }
+
+            // longest lifetime
+            #[inline]
+            fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                let (t, _) = T::try_decode_from(v.as_slice())
+                    .map_err(|_| de::Error::custom("failed to deserialize varuint bytes"))?;
+                Ok(Varuint(t))
+            }
+
+            // binary / human readable
+
+            // this typically only happens when there are bytes serialized into
+            // a human readable format.
+            #[inline]
+            fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
+            where
+                S: de::SeqAccess<'de>,
+            {
+                let mut v = Vec::new();
+                while let Some(b) = seq.next_element()? {
+                    v.push(b);
+                }
+                let (t, _) = T::try_decode_from(v.as_slice())
                     .map_err(|_| de::Error::custom("failed to deserialize varuint bytes"))?;
                 Ok(Varuint(t))
             }
@@ -79,12 +186,57 @@ impl<'de> de::Deserialize<'de> for Varbytes {
                 write!(f, "varuint encoded len followed by bytes")
             }
 
+            // only binary
+
+            // shortest lifetime
+            #[inline]
+            fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                let (len, ptr) = usize::try_decode_from(v)
+                    .map_err(|_| de::Error::custom("failed to deserialize varuint len"))?;
+                let v = ptr[..len].to_vec();
+                Ok(Varbytes(v))
+            }
+
             #[inline]
             fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
             where
                 E: de::Error,
             {
                 let (len, ptr) = usize::try_decode_from(v)
+                    .map_err(|_| de::Error::custom("failed to deserialize varuint len"))?;
+                let v = ptr[..len].to_vec();
+                Ok(Varbytes(v))
+            }
+
+            // longest lifetime
+            #[inline]
+            fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                let (len, ptr) = usize::try_decode_from(v.as_slice())
+                    .map_err(|_| de::Error::custom("failed to deserialize varuint len"))?;
+                let v = ptr[..len].to_vec();
+                Ok(Varbytes(v))
+            }
+
+            // binary / human readable
+
+            // this typically only happens when there are bytes serialized into
+            // a human readable format.
+            #[inline]
+            fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
+            where
+                S: de::SeqAccess<'de>,
+            {
+                let mut v = Vec::new();
+                while let Some(b) = seq.next_element()? {
+                    v.push(b);
+                }
+                let (len, ptr) = usize::try_decode_from(v.as_slice())
                     .map_err(|_| de::Error::custom("failed to deserialize varuint len"))?;
                 let v = ptr[..len].to_vec();
                 Ok(Varbytes(v))

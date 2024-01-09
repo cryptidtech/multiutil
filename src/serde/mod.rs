@@ -5,11 +5,12 @@ mod ser;
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Error, *};
-    use serde::{de, ser};
+    use serde::{Deserialize, Serialize};
     use serde_test::{assert_tokens, Configure, Token};
 
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
     struct Unit((u8, [u8; 2]));
+
     type EncodedUnit = BaseEncoded<Unit>;
 
     impl Unit {
@@ -55,29 +56,10 @@ mod tests {
         }
     }
 
-    impl ser::Serialize for Unit {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: ser::Serializer,
-        {
-            (self.0 .0, self.0 .1).serialize(serializer)
-        }
-    }
-
-    impl<'de> de::Deserialize<'de> for Unit {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: de::Deserializer<'de>,
-        {
-            let (v, arr) = de::Deserialize::deserialize(deserializer)?;
-            Ok(Self((v, arr)))
-        }
-    }
-
     #[test]
     fn test_serde_base_encoded_readable() {
         let unit = Unit::encoded_default();
-        assert_tokens(&unit.readable(), &[Token::String("f59dead")]);
+        assert_tokens(&unit.readable(), &[Token::BorrowedStr("f59dead")]);
     }
 
     #[test]
@@ -88,6 +70,7 @@ mod tests {
             &[
                 Token::Tuple { len: 2 },
                 Token::Char('f'),
+                Token::NewtypeStruct { name: "Unit" },
                 Token::Tuple { len: 2 },
                 Token::U8(0x59),
                 Token::Tuple { len: 2 },
@@ -98,6 +81,42 @@ mod tests {
                 Token::TupleEnd,
             ],
         );
+    }
+
+    #[test]
+    fn test_cbor_reader_writer() {
+        let unit1 = Unit::default();
+        let mut b = Vec::new();
+        serde_cbor::to_writer(&mut b, &unit1).unwrap();
+        let unit2: Unit = serde_cbor::from_reader(b.as_slice()).unwrap();
+        assert_eq!(unit1, unit2);
+    }
+
+    #[test]
+    fn test_json_reader_writer() {
+        let unit1 = Unit::default();
+        let mut b = Vec::new();
+        serde_json::to_writer_pretty(&mut b, &unit1).unwrap();
+        let unit2: Unit = serde_json::from_reader(b.as_slice()).unwrap();
+        assert_eq!(unit1, unit2);
+    }
+
+    #[test]
+    fn test_encoded_cbor_reader_writer() {
+        let unit1 = Unit::encoded_default();
+        let mut b = Vec::new();
+        serde_cbor::to_writer(&mut b, &unit1).unwrap();
+        let unit2: EncodedUnit = serde_cbor::from_reader(b.as_slice()).unwrap();
+        assert_eq!(unit1, unit2);
+    }
+
+    #[test]
+    fn test_encoded_json_reader_writer() {
+        let unit1 = Unit::encoded_default();
+        let mut b = Vec::new();
+        serde_json::to_writer_pretty(&mut b, &unit1).unwrap();
+        let unit2: EncodedUnit = serde_json::from_reader(b.as_slice()).unwrap();
+        assert_eq!(unit1, unit2);
     }
 
     #[test]
