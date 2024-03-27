@@ -52,3 +52,31 @@ impl BaseEncoder for Base58Encoder {
         "base58Btc".to_string()
     }
 }
+
+/// a speculative encoder that tries to detect the correct encoding and decode it
+/// encoding is always done using multibase so this does not support symetric 
+/// decode/encode round trips. this is useful for decoding CIDs that might be 
+/// base58 encoded "legacy" CIDs but alsy may be multibase encoded CIDs.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct DetectedEncoder {}
+
+impl BaseEncoder for DetectedEncoder {
+    fn to_base_encoded(base: Base, b: &[u8]) -> String {
+        multibase::encode(base, b)
+    }
+    fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
+        // first try multibase decoding
+        if let Ok((base, data)) = multibase::decode(s) {
+            return Ok((base, data));
+        }
+        // next try base58 encoding
+        if let Ok(data) = s.from_base58() {
+            return Ok((Base::Base58Btc, data));
+        }
+        // raise an error
+        Err(BaseEncodedError::ValueFailed.into())
+    }
+    fn debug_string(base: Base) -> String {
+        format!("{} ('{}')", base_name(base), base.code())
+    }
+}

@@ -13,7 +13,7 @@ pub use base_encoded::BaseEncoded;
 
 /// BaseEncoder trait and impls
 pub mod base_encoder;
-pub use base_encoder::{Base58Encoder, BaseEncoder, MultibaseEncoder};
+pub use base_encoder::{Base58Encoder, BaseEncoder, DetectedEncoder, MultibaseEncoder};
 
 /// base_name function
 pub mod base_name;

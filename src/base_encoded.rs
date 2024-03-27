@@ -1,5 +1,5 @@
 use crate::{
-    error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, Error, MultibaseEncoder,
+    error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, Error, DetectedEncoder,
 };
 use core::{
     cmp::Ordering,
@@ -13,7 +13,7 @@ use core::{
 /// decoding from multibase encoding strings using [`TryFrom<&str>`] and
 /// ['to_string()']
 #[derive(Clone)]
-pub struct BaseEncoded<T, Enc = MultibaseEncoder>
+pub struct BaseEncoded<T, Enc = DetectedEncoder>
 where
     T: EncodingInfo + ?Sized,
     Enc: BaseEncoder,
