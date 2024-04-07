@@ -1,3 +1,4 @@
+// SPDX-License-Idnetifier: Apache-2.0
 use crate::prelude::Base;
 
 /// This trait exposes the preferred encoding for this multicodec type

@@ -1,3 +1,4 @@
+// SPDX-License-Idnetifier: Apache-2.0
 use crate::prelude::Base;
 
 /// convert a multibase Base to its string equivalent

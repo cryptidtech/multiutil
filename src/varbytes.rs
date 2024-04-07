@@ -1,3 +1,4 @@
+// SPDX-License-Idnetifier: Apache-2.0
 use crate::{BaseEncoded, EncodingInfo, Error};
 use core::{fmt, ops};
 use multibase::Base;

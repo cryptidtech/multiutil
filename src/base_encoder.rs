@@ -1,3 +1,4 @@
+// SPDX-License-Idnetifier: Apache-2.0
 use crate::{
     base_name,
     error::{BaseEncodedError, BaseEncoderError},
