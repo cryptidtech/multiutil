@@ -5,7 +5,7 @@ mod ser;
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{Error, *};
+    use crate::prelude::*;
     use serde::{Deserialize, Serialize};
     use serde_test::{assert_tokens, Configure, Token};
 
