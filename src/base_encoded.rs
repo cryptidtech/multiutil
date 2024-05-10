@@ -59,9 +59,10 @@ where
     }
 }
 
-impl<T> From<T> for BaseEncoded<T>
+impl<T, Enc> From<T> for BaseEncoded<T, Enc>
 where
     T: EncodingInfo,
+    Enc: BaseEncoder,
 {
     fn from(t: T) -> Self {
         Self::new(T::preferred_encoding(), t)
