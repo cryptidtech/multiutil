@@ -14,7 +14,7 @@ use core::{
 /// decoding from multibase encoding strings using [`TryFrom<&str>`] and
 /// ['to_string()']
 #[derive(Clone)]
-pub struct BaseEncoded<T, Enc = DetectedEncoder>
+pub struct BaseEncoded<T, Enc = MultibaseEncoder>
 where
     T: EncodingInfo + ?Sized,
     Enc: BaseEncoder,
