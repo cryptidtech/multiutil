@@ -91,22 +91,24 @@ where
     }
 }
 
-impl<T, Enc> PartialEq for BaseEncoded<T, Enc>
+impl<T, Enc, OtherEnc> PartialEq<BaseEncoded<T, OtherEnc>> for BaseEncoded<T, Enc>
 where
     T: EncodingInfo + PartialEq<T> + ?Sized,
     Enc: BaseEncoder,
+    OtherEnc: BaseEncoder,
 {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, other: &BaseEncoded<T, OtherEnc>) -> bool {
         self.base == other.base && self.t == other.t
     }
 }
 
-impl<T, Enc> PartialOrd for BaseEncoded<T, Enc>
+impl<T, Enc, OtherEnc> PartialOrd<BaseEncoded<T, OtherEnc>> for BaseEncoded<T, Enc>
 where
     T: EncodingInfo + PartialEq<T> + PartialOrd<T> + ?Sized,
     Enc: BaseEncoder,
+    OtherEnc: BaseEncoder,
 {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &BaseEncoded<T, OtherEnc>) -> Option<Ordering> {
         self.t.partial_cmp(&other.t)
     }
 }
