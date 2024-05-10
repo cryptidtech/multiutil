@@ -80,6 +80,7 @@ impl BaseEncoder for DetectedEncoder {
         if let Ok((base, data)) = multibase::decode(s) {
             return Ok((base, data));
         }
+
         // next try "naked" encoding in increasing symbol space size order
         
         // base16
@@ -88,13 +89,43 @@ impl BaseEncoder for DetectedEncoder {
         }
 
         // base32 (no padding)
-        if let Some(data) = base32::decode(base32::Alphabet::RFC4648 { padding: false }, s) {
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, s) {
+            return Ok((Base::Base32Upper, data))
+        }
+
+        // base32 (padding)
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648 { padding: true }, s) {
+            return Ok((Base::Base32PadUpper, data))
+        }
+
+        // base32 (lower + no padding)
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Lower { padding: false }, s) {
             return Ok((Base::Base32Lower, data))
         }
 
         // base32 (padding)
-        if let Some(data) = base32::decode(base32::Alphabet::RFC4648 { padding: true }, s) {
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Lower { padding: true }, s) {
             return Ok((Base::Base32PadLower, data))
+        }
+
+        // base32 (no padding)
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Hex { padding: false }, s) {
+            return Ok((Base::Base32HexUpper, data))
+        }
+
+        // base32 (padding)
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Hex { padding: true }, s) {
+            return Ok((Base::Base32HexPadUpper, data))
+        }
+
+        // base32 (lower + no padding)
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648HexLower { padding: false }, s) {
+            return Ok((Base::Base32HexLower, data))
+        }
+
+        // base32 (padding)
+        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648HexLower { padding: true }, s) {
+            return Ok((Base::Base32HexPadLower, data))
         }
 
         // base36
