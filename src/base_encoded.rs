@@ -149,7 +149,7 @@ where
     type Target = T;
 
     #[inline(always)]
-    fn deref(&self) -> &T {
+    fn deref(&self) -> &Self::Target {
         &self.t
     }
 }

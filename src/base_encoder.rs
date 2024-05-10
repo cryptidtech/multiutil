@@ -5,8 +5,6 @@ use crate::{
     prelude::Base,
     Error,
 };
-use base58::{FromBase58, ToBase58};
-use base64::prelude::*;
 
 /// a trait for base encoding implementations
 pub trait BaseEncoder {
@@ -48,10 +46,10 @@ pub struct Base58Encoder {}
 
 impl BaseEncoder for Base58Encoder {
     fn to_base_encoded(_base: Base, b: &[u8]) -> String {
-        b.to_base58()
+        Base::Base58Btc.encode(b)
     }
     fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
-        match s.from_base58() {
+        match Base::Base58Btc.decode(s) {
             Ok(v) => Ok((Base::Base58Btc, v)),
             Err(e) => Err(BaseEncoderError::Base58(format!("{:?}", e)).into()),
         }
@@ -82,84 +80,49 @@ impl BaseEncoder for DetectedEncoder {
         }
 
         // next try "naked" encoding in increasing symbol space size order
-        
-        // base16
-        if let Ok(data) = hex::decode(s) {
+        if let Ok(data) = Base::Base2.decode(s) {
+            return Ok((Base::Base2, data))
+        } else if let Ok(data) = Base::Base8.decode(s) {
+            return Ok((Base::Base8, data))
+        } else if let Ok(data) = Base::Base10.decode(s) {
+            return Ok((Base::Base10, data))
+        } else if let Ok(data) = Base::Base16Lower.decode(s) {
             return Ok((Base::Base16Lower, data))
-        }
-
-        // base32 (upper)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, s) {
-            return Ok((Base::Base32Upper, data))
-        }
-
-        // base32 (upper + padding)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648 { padding: true }, s) {
-            return Ok((Base::Base32PadUpper, data))
-        }
-
-        // base32 (lower)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Lower { padding: false }, s) {
+        } else if let Ok(data) = Base::Base16Upper.decode(s) {
+            return Ok((Base::Base16Upper, data))
+        } else if let Ok(data) = Base::Base32Lower.decode(s) {
             return Ok((Base::Base32Lower, data))
-        }
-
-        // base32 (lower + padding)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Lower { padding: true }, s) {
+        } else if let Ok(data) = Base::Base32Upper.decode(s) {
+            return Ok((Base::Base32Upper, data))
+        } else if let Ok(data) = Base::Base32PadLower.decode(s) {
             return Ok((Base::Base32PadLower, data))
-        }
-
-        // base32 (hex + upper)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Hex { padding: false }, s) {
-            return Ok((Base::Base32HexUpper, data))
-        }
-
-        // base32 (hex + upper + padding)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Hex { padding: true }, s) {
-            return Ok((Base::Base32HexPadUpper, data))
-        }
-
-        // base32 (hex + lower)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648HexLower { padding: false }, s) {
+        } else if let Ok(data) = Base::Base32PadUpper.decode(s) {
+            return Ok((Base::Base32PadUpper, data))
+        } else if let Ok(data) = Base::Base32HexLower.decode(s) {
             return Ok((Base::Base32HexLower, data))
-        }
-
-        // base32 (hex + lower + padding)
-        if let Some(data) = base32::decode(base32::Alphabet::Rfc4648HexLower { padding: true }, s) {
+        } else if let Ok(data) = Base::Base32HexUpper.decode(s) {
+            return Ok((Base::Base32HexUpper, data))
+        } else if let Ok(data) = Base::Base32HexPadLower.decode(s) {
             return Ok((Base::Base32HexPadLower, data))
-        }
-
-        // base32z
-        if let Some(data) = base32::decode(base32::Alphabet::Z, s) {
+        } else if let Ok(data) = Base::Base32HexPadUpper.decode(s) {
+            return Ok((Base::Base32HexPadUpper, data))
+        } else if let Ok(data) = Base::Base32Z.decode(s) {
             return Ok((Base::Base32Z, data))
-        }
-
-        // base36
-        if let Ok(data) = base36::decode(s) {
+        } else if let Ok(data) = Base::Base36Lower.decode(s) {
             return Ok((Base::Base36Lower, data))
-        }
-
-        // base58 (bitcoin)
-        if let Ok(data) = s.from_base58() {
-            return Ok((Base::Base58Btc, data));
-        }
-
-        // base64 (no padding)
-        if let Ok(data) = BASE64_STANDARD_NO_PAD.decode(s) {
+        } else if let Ok(data) = Base::Base36Upper.decode(s) {
+            return Ok((Base::Base36Upper, data))
+        } else if let Ok(data) = Base::Base58Flickr.decode(s) {
+            return Ok((Base::Base58Flickr, data))
+        } else if let Ok(data) = Base::Base58Btc.decode(s) {
+            return Ok((Base::Base58Btc, data))
+        } else if let Ok(data) = Base::Base64.decode(s) {
             return Ok((Base::Base64, data))
-        }
-
-        // base64 (padding)
-        if let Ok(data) = BASE64_STANDARD.decode(s) {
+        } else if let Ok(data) = Base::Base64Pad.decode(s) {
             return Ok((Base::Base64Pad, data))
-        }
-
-        // base64 (url + no padding)
-        if let Ok(data) = BASE64_URL_SAFE_NO_PAD.decode(s) {
+        } else if let Ok(data) = Base::Base64Url.decode(s) {
             return Ok((Base::Base64Url, data))
-        }
-
-        // base64 (url + padding)
-        if let Ok(data) = BASE64_URL_SAFE.decode(s) {
+        } else if let Ok(data) = Base::Base64UrlPad.decode(s) {
             return Ok((Base::Base64UrlPad, data))
         }
 

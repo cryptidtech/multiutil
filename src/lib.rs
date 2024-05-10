@@ -16,9 +16,9 @@ pub use base_encoded::BaseEncoded;
 pub mod base_encoder;
 pub use base_encoder::{Base58Encoder, BaseEncoder, DetectedEncoder, MultibaseEncoder};
 
-/// base_name function
-pub mod base_name;
-pub use base_name::base_name;
+/// Base related utility functions / types
+pub mod base_util;
+pub use base_util::{base_name, BaseIter};
 
 /// CodecInfo trait
 pub mod codec_info;
@@ -47,7 +47,7 @@ pub use varuint::{EncodedVaruint, Varuint};
 /// one-stop shop for all exported symbols
 pub mod prelude {
     pub use super::{
-        base_encoded::*, base_encoder::*, base_name::*, codec_info::*, encoding_info::*, error::*,
+        base_encoded::*, base_encoder::*, base_util::*, codec_info::*, encoding_info::*, error::*,
         varbytes::*, varuint::*,
     };
 
