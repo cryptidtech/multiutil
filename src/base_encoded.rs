@@ -44,13 +44,15 @@ where
     }
 }
 
-impl<T> EncodingInfo for BaseEncoded<T>
+impl<T, Enc> EncodingInfo for BaseEncoded<T, Enc>
 where
     T: EncodingInfo,
+    Enc: BaseEncoder,
 {
     /// Return the encoding hint for the contained type
     fn preferred_encoding() -> Base {
-        T::preferred_encoding()
+        // give the BaseEncoder a chance to overrule the inner type's preferred encoding
+        Enc::preferred_encoding(T::preferred_encoding())
     }
 
     /// Return the encoding used to encode the contained object
@@ -65,7 +67,8 @@ where
     Enc: BaseEncoder,
 {
     fn from(t: T) -> Self {
-        Self::new(T::preferred_encoding(), t)
+        // give the BaseEncoder a chance to overrule the inner type's preferred encoding
+        Self::new(Enc::preferred_encoding(T::preferred_encoding()), t)
     }
 }
 
@@ -125,9 +128,10 @@ where
     }
 }
 
-impl<T> Hash for BaseEncoded<T>
+impl<T, Enc> Hash for BaseEncoded<T, Enc>
 where
     T: EncodingInfo + Clone + Into<Vec<u8>>,
+    Enc: BaseEncoder,
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
         let s = self.to_string();
@@ -135,9 +139,10 @@ where
     }
 }
 
-impl<T> ops::Deref for BaseEncoded<T>
+impl<T, Enc> ops::Deref for BaseEncoded<T, Enc>
 where
     T: EncodingInfo,
+    Enc: BaseEncoder,
 {
     type Target = T;
 
@@ -147,9 +152,10 @@ where
     }
 }
 
-impl<T> ops::DerefMut for BaseEncoded<T>
+impl<T, Enc> ops::DerefMut for BaseEncoded<T, Enc>
 where
     T: EncodingInfo,
+    Enc: BaseEncoder,
 {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {

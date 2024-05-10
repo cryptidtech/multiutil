@@ -17,6 +17,9 @@ pub trait BaseEncoder {
 
     /// get the debug string for the given base
     fn debug_string(base: Base) -> String;
+
+    /// get the preferred base encoding for this encoder
+    fn preferred_encoding(base: Base) -> Base;
 }
 
 /// a multibase encoder implementation for use as the default encoder
@@ -32,6 +35,9 @@ impl BaseEncoder for MultibaseEncoder {
     }
     fn debug_string(base: Base) -> String {
         format!("{} ('{}')", base_name(base), base.code())
+    }
+    fn preferred_encoding(base: Base) -> Base {
+        base
     }
 }
 
@@ -50,7 +56,10 @@ impl BaseEncoder for Base58Encoder {
         }
     }
     fn debug_string(_base: Base) -> String {
-        "base58Btc".to_string()
+        format!("{} ('{}')", base_name(Base::Base58Btc), Base::Base58Btc.code())
+    }
+    fn preferred_encoding(_base: Base) -> Base {
+        Base::Base58Btc
     }
 }
 
@@ -79,5 +88,8 @@ impl BaseEncoder for DetectedEncoder {
     }
     fn debug_string(base: Base) -> String {
         format!("{} ('{}')", base_name(base), base.code())
+    }
+    fn preferred_encoding(base: Base) -> Base {
+        base
     }
 }
