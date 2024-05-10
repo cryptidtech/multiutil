@@ -155,12 +155,12 @@ impl BaseEncoder for DetectedEncoder {
 
         // base64 (url + no padding)
         if let Ok(data) = BASE64_URL_SAFE_NO_PAD.decode(s) {
-            return Ok((Base::Base64Pad, data))
+            return Ok((Base::Base64Url, data))
         }
 
         // base64 (url + padding)
         if let Ok(data) = BASE64_URL_SAFE.decode(s) {
-            return Ok((Base::Base64Pad, data))
+            return Ok((Base::Base64UrlPad, data))
         }
 
         // raise an error
