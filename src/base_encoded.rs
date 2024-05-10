@@ -1,6 +1,6 @@
 // SPDX-License-Idnetifier: Apache-2.0
 use crate::{
-    error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, Error, DetectedEncoder,
+    error::BaseEncodedError, prelude::Base, BaseEncoder, EncodingInfo, Error, MultibaseEncoder,
 };
 use core::{
     cmp::Ordering,
