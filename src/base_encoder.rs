@@ -88,44 +88,49 @@ impl BaseEncoder for DetectedEncoder {
             return Ok((Base::Base16Lower, data))
         }
 
-        // base32 (no padding)
+        // base32 (upper)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, s) {
             return Ok((Base::Base32Upper, data))
         }
 
-        // base32 (padding)
+        // base32 (upper + padding)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648 { padding: true }, s) {
             return Ok((Base::Base32PadUpper, data))
         }
 
-        // base32 (lower + no padding)
+        // base32 (lower)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Lower { padding: false }, s) {
             return Ok((Base::Base32Lower, data))
         }
 
-        // base32 (padding)
+        // base32 (lower + padding)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Lower { padding: true }, s) {
             return Ok((Base::Base32PadLower, data))
         }
 
-        // base32 (no padding)
+        // base32 (hex + upper)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Hex { padding: false }, s) {
             return Ok((Base::Base32HexUpper, data))
         }
 
-        // base32 (padding)
+        // base32 (hex + upper + padding)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648Hex { padding: true }, s) {
             return Ok((Base::Base32HexPadUpper, data))
         }
 
-        // base32 (lower + no padding)
+        // base32 (hex + lower)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648HexLower { padding: false }, s) {
             return Ok((Base::Base32HexLower, data))
         }
 
-        // base32 (padding)
+        // base32 (hex + lower + padding)
         if let Some(data) = base32::decode(base32::Alphabet::Rfc4648HexLower { padding: true }, s) {
             return Ok((Base::Base32HexPadLower, data))
+        }
+
+        // base32z
+        if let Some(data) = base32::decode(base32::Alphabet::Z, s) {
+            return Ok((Base::Base32Z, data))
         }
 
         // base36
