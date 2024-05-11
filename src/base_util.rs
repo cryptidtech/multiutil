@@ -28,6 +28,7 @@ pub fn base_name(b: Base) -> String {
         Base64Pad => "Base64Pad",
         Base64Url => "Base64Url",
         Base64UrlPad => "Base64UrlPad",
+        Base256Emoji => "Base256Emoji",
     }
     .to_string()
 }
@@ -78,7 +79,8 @@ impl Iterator for BaseIter {
                 Base64 => Base64Pad,
                 Base64Pad => Base64Url,
                 Base64Url => Base64UrlPad,
-                Base64UrlPad => return None,
+                Base64UrlPad => Base256Emoji,
+                Base256Emoji => return None,
             }
         };
         self.0 = Some(result);
@@ -97,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_last_iter() {
-        let mut iter: BaseIter = Base::Base64UrlPad.into();
+        let mut iter: BaseIter = Base::Base256Emoji.into();
         assert_eq!(iter.next(), None)
     }
 

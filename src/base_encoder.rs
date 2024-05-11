@@ -1,6 +1,7 @@
 // SPDX-License-Idnetifier: Apache-2.0
 use crate::{
     base_name,
+    BaseIter,
     error::{BaseEncodedError, BaseEncoderError},
     prelude::Base,
     Error,
@@ -30,7 +31,8 @@ impl BaseEncoder for MultibaseEncoder {
         multibase::encode(base, b)
     }
     fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
-        Ok(multibase::decode(s).map_err(|_| BaseEncodedError::ValueFailed)?)
+        // try permissive multibase decoding
+        Ok(multibase::decode(s, false).map_err(|_| BaseEncodedError::ValueFailed)?)
     }
     fn debug_string(base: Base) -> String {
         format!("{} ('{}')", base_name(base), base.code())
@@ -40,7 +42,7 @@ impl BaseEncoder for MultibaseEncoder {
     }
 }
 
-/// a bare Base58Btc encoder implementation for use with legacy Cids
+/// a bare Base58Btc encoder implementation for use with legacy CIDs
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Base58Encoder {}
 
@@ -49,7 +51,8 @@ impl BaseEncoder for Base58Encoder {
         Base::Base58Btc.encode(b)
     }
     fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
-        match Base::Base58Btc.decode(s) {
+        // try strict Base58Btc decoding
+        match Base::Base58Btc.decode(s, true) {
             Ok(v) => Ok((Base::Base58Btc, v)),
             Err(e) => Err(BaseEncoderError::Base58(format!("{:?}", e)).into()),
         }
@@ -74,56 +77,20 @@ impl BaseEncoder for DetectedEncoder {
         multibase::encode(base, b)
     }
     fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
-        // first try multibase decoding
-        if let Ok((base, data)) = multibase::decode(s) {
+        // first try permissive multibase decoding
+        if let Ok((base, data)) = multibase::decode(s, false) {
             return Ok((base, data));
         }
+        
+        // start at the Identity base so we skip it
+        let mut iter: BaseIter = Base::Identity.into();
 
-        // next try "naked" encoding in increasing symbol space size order
-        if let Ok(data) = Base::Base2.decode(s) {
-            return Ok((Base::Base2, data))
-        } else if let Ok(data) = Base::Base8.decode(s) {
-            return Ok((Base::Base8, data))
-        } else if let Ok(data) = Base::Base10.decode(s) {
-            return Ok((Base::Base10, data))
-        } else if let Ok(data) = Base::Base16Lower.decode(s) {
-            return Ok((Base::Base16Lower, data))
-        } else if let Ok(data) = Base::Base16Upper.decode(s) {
-            return Ok((Base::Base16Upper, data))
-        } else if let Ok(data) = Base::Base32Lower.decode(s) {
-            return Ok((Base::Base32Lower, data))
-        } else if let Ok(data) = Base::Base32Upper.decode(s) {
-            return Ok((Base::Base32Upper, data))
-        } else if let Ok(data) = Base::Base32PadLower.decode(s) {
-            return Ok((Base::Base32PadLower, data))
-        } else if let Ok(data) = Base::Base32PadUpper.decode(s) {
-            return Ok((Base::Base32PadUpper, data))
-        } else if let Ok(data) = Base::Base32HexLower.decode(s) {
-            return Ok((Base::Base32HexLower, data))
-        } else if let Ok(data) = Base::Base32HexUpper.decode(s) {
-            return Ok((Base::Base32HexUpper, data))
-        } else if let Ok(data) = Base::Base32HexPadLower.decode(s) {
-            return Ok((Base::Base32HexPadLower, data))
-        } else if let Ok(data) = Base::Base32HexPadUpper.decode(s) {
-            return Ok((Base::Base32HexPadUpper, data))
-        } else if let Ok(data) = Base::Base32Z.decode(s) {
-            return Ok((Base::Base32Z, data))
-        } else if let Ok(data) = Base::Base36Lower.decode(s) {
-            return Ok((Base::Base36Lower, data))
-        } else if let Ok(data) = Base::Base36Upper.decode(s) {
-            return Ok((Base::Base36Upper, data))
-        } else if let Ok(data) = Base::Base58Flickr.decode(s) {
-            return Ok((Base::Base58Flickr, data))
-        } else if let Ok(data) = Base::Base58Btc.decode(s) {
-            return Ok((Base::Base58Btc, data))
-        } else if let Ok(data) = Base::Base64.decode(s) {
-            return Ok((Base::Base64, data))
-        } else if let Ok(data) = Base::Base64Pad.decode(s) {
-            return Ok((Base::Base64Pad, data))
-        } else if let Ok(data) = Base::Base64Url.decode(s) {
-            return Ok((Base::Base64Url, data))
-        } else if let Ok(data) = Base::Base64UrlPad.decode(s) {
-            return Ok((Base::Base64UrlPad, data))
+        // next try "naked" encoding in increasing symbol space size order.
+        // these have to be strict decodings to avoid confusion
+        while let Some(encoding) = iter.next() {
+            if let Ok(data) = encoding.decode(s, true) {
+                return Ok((encoding, data))
+            }
         }
 
         // raise an error
