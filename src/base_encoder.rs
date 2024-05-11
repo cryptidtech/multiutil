@@ -13,7 +13,7 @@ pub trait BaseEncoder {
     fn to_base_encoded(base: Base, b: &[u8]) -> String;
 
     /// convert a base encoded value to a Vec<u8>
-    fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error>;
+    fn from_base_encoded(s: &str) -> Result<Vec<(Base, Vec<u8>)>, Error>;
 
     /// get the debug string for the given base
     fn debug_string(base: Base) -> String;
@@ -30,9 +30,9 @@ impl BaseEncoder for MultibaseEncoder {
     fn to_base_encoded(base: Base, b: &[u8]) -> String {
         multibase::encode(base, b)
     }
-    fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
+    fn from_base_encoded(s: &str) -> Result<Vec<(Base, Vec<u8>)>, Error> {
         // try permissive multibase decoding
-        Ok(multibase::decode(s, false).map_err(|_| BaseEncodedError::ValueFailed)?)
+        Ok(vec![multibase::decode(s, false).map_err(|_| BaseEncodedError::ValueFailed)?])
     }
     fn debug_string(base: Base) -> String {
         format!("{} ('{}')", base_name(base), base.code())
@@ -50,10 +50,10 @@ impl BaseEncoder for Base58Encoder {
     fn to_base_encoded(_base: Base, b: &[u8]) -> String {
         Base::Base58Btc.encode(b)
     }
-    fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
+    fn from_base_encoded(s: &str) -> Result<Vec<(Base, Vec<u8>)>, Error> {
         // try strict Base58Btc decoding
         match Base::Base58Btc.decode(s, true) {
-            Ok(v) => Ok((Base::Base58Btc, v)),
+            Ok(v) => Ok(vec![(Base::Base58Btc, v)]),
             Err(e) => Err(BaseEncoderError::Base58(format!("{:?}", e)).into()),
         }
     }
@@ -76,10 +76,10 @@ impl BaseEncoder for DetectedEncoder {
     fn to_base_encoded(base: Base, b: &[u8]) -> String {
         multibase::encode(base, b)
     }
-    fn from_base_encoded(s: &str) -> Result<(Base, Vec<u8>), Error> {
+    fn from_base_encoded(s: &str) -> Result<Vec<(Base, Vec<u8>)>, Error> {
         // first try permissive multibase decoding
         if let Ok((base, data)) = multibase::decode(s, false) {
-            return Ok((base, data));
+            return Ok(vec![(base, data)]);
         }
         
         // start at the Identity base so we skip it
@@ -87,14 +87,18 @@ impl BaseEncoder for DetectedEncoder {
 
         // next try "naked" encoding in increasing symbol space size order.
         // these have to be strict decodings to avoid confusion
+        let mut v = Vec::default();
         while let Some(encoding) = iter.next() {
             if let Ok(data) = encoding.decode(s, true) {
-                return Ok((encoding, data))
+                v.push((encoding, data));
             }
         }
-
-        // raise an error
-        Err(BaseEncodedError::ValueFailed.into())
+        if v.is_empty() {
+            // raise an error
+            Err(BaseEncodedError::ValueFailed.into())
+        } else {
+            Ok(v)
+        }
     }
     fn debug_string(base: Base) -> String {
         format!("{} ('{}')", base_name(base), base.code())

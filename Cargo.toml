@@ -1,6 +1,6 @@
 [package]
 name = "multiutil"
-version = "1.0.12"
+version = "1.0.13"
 edition = "2021"
 authors = ["Dave Huseby <dwh@linuxprogrammer.org>"]
 description = "Multiformat utility functions and types"

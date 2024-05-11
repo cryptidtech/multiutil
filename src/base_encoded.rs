@@ -81,11 +81,18 @@ where
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match Enc::from_base_encoded(s) {
-            Ok((base, v)) => Ok(Self {
-                base,
-                t: T::try_from(v.as_slice()).map_err(|_| BaseEncodedError::ValueFailed)?,
-                enc: PhantomData,
-            }),
+            Ok(decodings) => {
+                for (base, v) in decodings {
+                    if let Ok(t) = T::try_from(v.as_slice()) {
+                        return Ok(Self {
+                            base,
+                            t,
+                            enc: PhantomData,
+                        })
+                    }
+                }
+                Err(BaseEncodedError::ValueFailed.into())
+            }
             Err(e) => Err(e.into()),
         }
     }
