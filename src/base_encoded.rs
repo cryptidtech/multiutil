@@ -93,7 +93,7 @@ where
                 }
                 Err(BaseEncodedError::ValueFailed.into())
             }
-            Err(e) => Err(e.into()),
+            Err(e) => Err(e),
         }
     }
 }

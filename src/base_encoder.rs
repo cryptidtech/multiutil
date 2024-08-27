@@ -83,12 +83,12 @@ impl BaseEncoder for DetectedEncoder {
         }
         
         // start at the Identity base so we skip it
-        let mut iter: BaseIter = Base::Identity.into();
+        let iter: BaseIter = Base::Identity.into();
 
         // next try "naked" encoding in increasing symbol space size order.
         // these have to be strict decodings to avoid confusion
         let mut v = Vec::default();
-        while let Some(encoding) = iter.next() {
+        for encoding in iter {
             if let Ok(data) = encoding.decode(s, true) {
                 v.push((encoding, data));
             }

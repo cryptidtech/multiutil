@@ -36,6 +36,12 @@ pub fn base_name(b: Base) -> String {
 /// Iterator over the Base enum values
 pub struct BaseIter(Option<Base>);
 
+impl Default for BaseIter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BaseIter {
     /// create a new BaseIter
     pub fn new() -> Self {

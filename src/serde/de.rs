@@ -40,7 +40,7 @@ where
             where
                 E: de::Error,
             {
-                Ok(Self::Value::try_from(s).map_err(|e| de::Error::custom(e.to_string()))?)
+                Self::Value::try_from(s).map_err(|e| de::Error::custom(e.to_string()))
             }
 
             #[inline]
@@ -48,7 +48,7 @@ where
             where
                 E: de::Error,
             {
-                Ok(Self::Value::try_from(s).map_err(|e| de::Error::custom(e.to_string()))?)
+                Self::Value::try_from(s).map_err(|e| de::Error::custom(e.to_string()))
             }
 
             // longest lifetime
@@ -57,8 +57,8 @@ where
             where
                 E: de::Error,
             {
-                Ok(Self::Value::try_from(s.as_str())
-                    .map_err(|e| de::Error::custom(e.to_string()))?)
+                Self::Value::try_from(s.as_str())
+                    .map_err(|e| de::Error::custom(e.to_string()))
             }
 
             // binary
