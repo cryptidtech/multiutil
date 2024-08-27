@@ -63,12 +63,12 @@ impl<T> EncodingInfo for Varuint<T> {
     }
 }
 
-impl<T> Into<Vec<u8>> for Varuint<T>
+impl<T> From<Varuint<T>> for Vec<u8>
 where
     T: EncodeInto,
 {
-    fn into(self) -> Vec<u8> {
-        self.0.encode_into()
+    fn from(vu: Varuint<T>) -> Vec<u8> {
+        vu.0.encode_into()
     }
 }
 

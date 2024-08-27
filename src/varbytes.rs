@@ -48,9 +48,9 @@ impl EncodingInfo for Varbytes {
     }
 }
 
-impl Into<Vec<u8>> for Varbytes {
-    fn into(self) -> Vec<u8> {
-        self.clone().encode_into()
+impl From<Varbytes> for Vec<u8> {
+    fn from(vb: Varbytes) -> Vec<u8> {
+        vb.encode_into()
     }
 }
 
